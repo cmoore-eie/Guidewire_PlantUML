@@ -2,6 +2,9 @@
 
 This project will enable the Guidewire entity definitions to be used in creating a set of files for PlantUML. The process is controled through information in a json file.
 
+Version 2 - Preprocesses the objects into an array to alow for better processing, this removes fk's where there is an array on the other side.
+Version 1 - Initial commit of the code
+
 **python GeneratePlantUML.py -c ./plant.json**
 
 ```json
