@@ -45,7 +45,7 @@ class BuildCode:
         file.write('}\n')
         file.write('\n')
         for structure in self.plant_structures:
-            if structure.type == 'entity':
+            if structure.type == 'entity' or structure.type == 'subtype':
                 process = False
                 if metadata and structure.metadata == 'true':
                     process = True
@@ -70,6 +70,8 @@ class BuildCode:
                     for key, value in structure.foreign_keys.items():
                         if self.process_item(value):
                           file.write(f'{structure.name} --> "{key}" {value}\n')
+                    if structure.type == 'subtype':
+                        file.write(f'{structure.name} --|> {structure.subtype}\n')
                     file.write("\n")
         file.write("@enduml\n")
         file.close()

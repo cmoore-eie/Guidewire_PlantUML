@@ -7,7 +7,7 @@
     "delegate_colour": "WhiteSmoke",
     "entity_colour": "Coral",
     "meta_entity_colour": "Wheat",
-    "typelist_contents": "true",
+    "typelist_contents": "false",
     "typelist_colour": "PaleTurquoise",
     "remove_unlinked": "true",
     "core_entities": [
