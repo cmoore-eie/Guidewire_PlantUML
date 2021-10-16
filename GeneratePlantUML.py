@@ -1,8 +1,11 @@
 import getopt
 import json
+import os
 import sys
 
-from BuildTypes import BuildTypes
+from lxml import etree
+from InitialStructure import BuildStructure
+from BuildCode import BuildCode
 
 help_str = '''
 
@@ -45,9 +48,12 @@ def main(argv):
     else:
         file = open(config_file)
         config_json = json.load(file)
-        build_types = BuildTypes(config_json)
-        build_types.meta_builder()
-        build_types.extensions_builder()
+        build_structure = BuildStructure(config_json)
+        build_structure.build()
+        build_types = BuildCode(config_json, build_structure.plant_structures)
+        build_types.type_builder()
+        # build_types.meta_builder()
+        # build_types.extensions_builder()
 
 
 if __name__ == "__main__":
