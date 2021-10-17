@@ -10,6 +10,10 @@
     "typelist_contents": "false",
     "typelist_colour": "PaleTurquoise",
     "remove_unlinked": "true",
+    "plantuml_limit_size": "81920",
+    "generate_diagram": "true",
+    "local_plantuml_jar": "/Users/christophermoore/Development/Tools/PlantUML/plantuml.jar",
+    "diagram_format_flag": "-tsvg",
     "core_entities": [
         {"core_entity": "PolicyPeriod"},
         {"core_entity": "Account"},

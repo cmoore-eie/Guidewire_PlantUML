@@ -4,7 +4,7 @@ from lxml import etree
 
 
 class PlantContent:
-
+    
     def add_column(self, in_column_name: str, in_column_type: str):
         if in_column_name not in self.columns:
             self.columns[in_column_name] = in_column_type

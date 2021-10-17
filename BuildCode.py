@@ -1,4 +1,5 @@
 import os
+import subprocess
 from lxml import etree
 from InitialStructure import PlantContent
 
@@ -17,6 +18,12 @@ class BuildCode:
         self.delegate_builder(False)
         self.entity_builder(True)
         self.entity_builder(False)
+        if self.config_json['generate_diagram'] == 'true':
+            command = 'java -DPLANTUML_LIMIT_SIZE=' + self.config_json['plantuml_limit_size']
+            command = command + ' -jar ' + self.config_json['local_plantuml_jar'] 
+            command = command + ' ' + self.config_json['diagram_format_flag']+ ' -verbose '
+            command = command + self.target_path + "/ExtensionEntity.puml"
+            os.system(command)
 
     def entity_builder(self, metadata: bool):
         entity_file_name = self.target_path
@@ -25,11 +32,13 @@ class BuildCode:
             uml_name = 'BaseEntity'
             class_colour = self.config_json['meta_entity_colour']
             stereotype = "Base"
+            print("entities - Metadata")
         else:
             entity_file_name = entity_file_name + "/ExtensionEntity.puml"
             uml_name = 'ExtensionEntity'
             class_colour = self.config_json['entity_colour']
             stereotype = "Entity"
+            print("entities - Extensions")
         file = open(entity_file_name, 'w')
         file.write(f"@startuml {uml_name}\n\n")
         file.write("!include BaseDelegate.puml\n")
@@ -85,10 +94,12 @@ class BuildCode:
             delegate_file_name = self.target_path + "/BaseDelegate.puml"
             uml_name = 'BaseDelegate'
             class_colour = self.config_json['delegate_colour']
+            print("delegates - Metadata")
         else:
             delegate_file_name = self.target_path + "/ExtensionDelegate.puml"
             uml_name = 'ExtensionDelegate'
             class_colour = self.config_json['delegate_colour']
+            print("delegates - Extensions")
         file = open(delegate_file_name, 'w')
         file.write(f"@startuml {uml_name}\n")
         file.write('skinparam class {\n')
@@ -132,9 +143,11 @@ class BuildCode:
         if metadata:
             target_file_name = target_file_name + "/BaseTypelist.puml"
             uml_name = 'BaseTypelists'
+            print("typelists - Metadata")
         else:
             target_file_name = target_file_name + "/ExtensionTypelist.puml"
             uml_name = 'ExtensionTypelist'
+            print("typelists - Extensions")
         file = open(target_file_name, 'w')
         file.write(f"@startuml {uml_name}\n\n")
         file.write('skinparam enum {\n')

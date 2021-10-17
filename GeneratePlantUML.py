@@ -3,7 +3,6 @@ import json
 import os
 import sys
 
-from lxml import etree
 from InitialStructure import BuildStructure
 from BuildCode import BuildCode
 
@@ -25,7 +24,7 @@ def main(argv):
         opts, args = getopt.getopt(argv, 'c:', ['help', 'config ='])
         for opt, arg in opts:
             if opt in ['-c', '--config']:
-                config_file = arg
+                config_file = arg.strip()
             elif opt in ['-h', '--help']:
                 print(help_str)
                 sys.exit()
