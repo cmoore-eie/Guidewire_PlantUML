@@ -28,9 +28,9 @@ class BuildCode:
             os.system(command)
 
     def extend_core(self):
-        if not(self.config_json['core_associations'] == 'true'):
-            return self
         if not(self.config_json['core_only'] == 'true'):
+            return self
+        if not(self.config_json['core_associations'] == 'true'):
             return self
         for core_name in self.core_entities.copy():
             structure: PlantContent

@@ -145,6 +145,11 @@ class BuildStructure:
                     foreignkey_name = component.get("name")
                     if not (self.foreignkey_in_array(foreignkey_entity, entity_name)):
                         structure.add_foreign_key(foreignkey_name, foreignkey_entity)
+                if tag == 'edgeForeignKey':
+                    foreignkey_entity = component.get("fkentity")
+                    foreignkey_name = component.get("name")
+                    if not (self.foreignkey_in_array(foreignkey_entity, entity_name)):
+                        structure.add_foreign_key(foreignkey_name, foreignkey_entity)
             except AttributeError:
                 pass
         return self
