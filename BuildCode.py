@@ -2,6 +2,7 @@ import os
 import subprocess
 from lxml import etree
 from InitialStructure import PlantContent
+from InitialStructure import BuildStructure
 
 core_entities = []
 
@@ -12,6 +13,7 @@ class BuildCode:
         print("")
         print("Processing Entities")
         print("===================")
+        self.extend_core()
         self.typelist_builder(True)
         self.typelist_builder(False)
         self.delegate_builder(True)
@@ -24,6 +26,24 @@ class BuildCode:
             command = command + ' ' + self.config_json['diagram_format_flag']+ ' -verbose '
             command = command + self.target_path + "/ExtensionEntity.puml"
             os.system(command)
+
+    def extend_core(self):
+        if not(self.config_json['core_associations'] == 'true'):
+            return self
+        if not(self.config_json['core_only'] == 'true'):
+            return self
+        for core_name in self.core_entities.copy():
+            structure: PlantContent
+            for check_structure in self.plant_structures:
+                if check_structure.name == core_name:
+                    structure = check_structure
+            for key, value in structure.arrays.items():
+                self.core_entities.append(value)
+            for key, value in structure.type_keys.items():
+                self.core_entities.append(key)
+            for key, value in structure.foreign_keys.items():
+                self.core_entities.append(value)
+
 
     def entity_builder(self, metadata: bool):
         entity_file_name = self.target_path
@@ -179,7 +199,7 @@ class BuildCode:
             if in_item_name.find(self.config_json['custom_prefix']) >= 0:
                 return True
         if self.core_only == 'true':
-            if in_item_name in core_entities:
+            if in_item_name in self.core_entities:
                 process = True
         else:
             process = True
@@ -192,4 +212,4 @@ class BuildCode:
         self.core_only = self.config_json['core_only']
         self.core_entities: list[str] = list()
         for entity in self.config_json["core_entities"]:
-            core_entities.append(entity["core_entity"])
+            self.core_entities.append(entity["core_entity"])

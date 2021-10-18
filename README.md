@@ -57,4 +57,5 @@ For a more complete writeup please visit [cmoore.pl](https://chrismoore.pl/visua
 | generate_diagram    | set to **true** to have the diagram generated immediately    |
 | local_plantuml_jar  | path to the PlantUML jar file, PlantUML need to be installed locally for the diagram generation to work |
 | diagram_format_flag | This is a flag to define the type of diagram to generate, **-tsvg** - SVG, **-tpng** - PNG |
+| core_associations   | When processing core_only if this is set to **true** the immediate associations will be included |
 
