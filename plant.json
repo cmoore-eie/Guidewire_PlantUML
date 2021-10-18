@@ -1,9 +1,9 @@
 {
-    "include_custom": "false",
+    "include_custom": "true",
     "custom_prefix": "_PMP",
     "source_path": "/Users/christophermoore/Development/Projects/cms/cms_pc_pmp/1012",
-    "target_path": "/Users/christophermoore/Scratch",
-    "core_only": "false",
+    "target_path": "/Users/christophermoore/Scratch/model",
+    "core_only": "true",
     "delegate_colour": "WhiteSmoke",
     "entity_colour": "Coral",
     "meta_entity_colour": "Wheat",
@@ -16,11 +16,16 @@
     "diagram_format_flag": "-tsvg",
     "core_entities": [
         {"core_entity": "PolicyPeriod"},
+        {"core_entity": "EffectiveDatedFields"},
         {"core_entity": "Account"},
+        {"core_entity": "AccountLocation"},
+        {"core_entity": "PolicyLocation"},
         {"core_entity": "Policy"},
         {"core_entity": "PolicyLine"},
         {"core_entity": "Cost"},
         {"core_entity": "AccountContact"},
-        {"core_entity": "VirtualProduct_PMP"}
+        {"core_entity": "Contact"},
+        {"core_entity": "VirtualProduct_PMP"},
+        {"core_entity": "PolicyContactRole"}
     ]
 }

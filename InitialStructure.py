@@ -68,6 +68,8 @@ class BuildStructure:
             root_type = root.tag.split("}")[1]
             if root_type == 'entity':
                 self.entity_builder(metadata, root)
+            if root_type == 'extension':
+                self.entity_builder(metadata, root)
             if root_type == 'subtype':
                 self.entity_builder(metadata, root)
             if root_type == 'delegate':
@@ -95,6 +97,8 @@ class BuildStructure:
         root_type = root.tag.split("}")[1]
         if root_type == 'delegate':
             entity_name: str = root.attrib['name']
+        elif root_type == 'extension':
+            entity_name: str = root.attrib['entityName']
         else:
             entity_name: str = root.attrib['entity']
         print(f'{root_type}: {entity_name}')
