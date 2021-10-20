@@ -1,4 +1,5 @@
 {
+    "structure": "GuidewireStructure",
     "include_custom": "false",
     "custom_prefix": "_PMP",
     "source_path": "/Users/christophermoore/Development/Projects/cms/cms_pc_pmp/1012",
@@ -8,12 +9,12 @@
     "meta_entity_colour": "Wheat",
     "typelist_contents": "false",
     "typelist_colour": "PaleTurquoise",
-    "remove_unlinked": "false",
+    "remove_unlinked": "true",
     "plantuml_limit_size": "81920",
     "generate_diagram": "true",
     "local_plantuml_jar": "/Users/christophermoore/Development/Tools/PlantUML/plantuml.jar",
     "diagram_format_flag": "-tsvg",
-    "core_only": "true",
+    "core_only": "false",
     "core_associations": "true",
     "core_entities": [
         {"core_entity": "PolicyPeriod"},

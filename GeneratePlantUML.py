@@ -2,8 +2,7 @@ import getopt
 import json
 import os
 import sys
-
-from InitialStructure import BuildStructure
+from Structures import *
 from BuildCode import BuildCode
 
 help_str = '''
@@ -35,7 +34,8 @@ def main(argv):
         sys.exit(2)
 
     if config_file == '':
-        process_errors[len(process_errors) + 1] = "-c (--config) missing and is required"
+        process_errors[len(process_errors) +
+                       1] = "-c (--config) missing and is required"
         sys.exit(1)
 
     if len(process_errors) > 0:
@@ -47,12 +47,11 @@ def main(argv):
     else:
         file = open(config_file)
         config_json = json.load(file)
-        build_structure = BuildStructure(config_json)
+        build_structure_class = globals()[config_json['structure']]
+        build_structure = build_structure_class(config_json)
         build_structure.build()
         build_types = BuildCode(config_json, build_structure.plant_structures)
         build_types.type_builder()
-        # build_types.meta_builder()
-        # build_types.extensions_builder()
 
 
 if __name__ == "__main__":

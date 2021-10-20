@@ -1,15 +1,17 @@
 import os
-import subprocess
-from lxml import etree
-from InitialStructure import PlantContent
-from InitialStructure import BuildStructure
-
-core_entities = []
-
+from PlantContent import PlantContent
 
 class BuildCode:
+    """ 
+    Creates the output files used to generate the diagram, and if configured will
+    generate the diagem in the fromat specified in the json configuration
+    """
 
     def type_builder(self):
+        """
+        Main function to process the information and generate the puml output files, if configured
+        the diagram will also be created based on the generated output files
+        """
         print("")
         print("Processing Entities")
         print("===================")
@@ -28,6 +30,10 @@ class BuildCode:
             os.system(command)
 
     def extend_core(self):
+        """
+        When core association is true and core entities are being processed this function will add the
+        additional entities to the list of the core entities to alow then to be processed
+        """
         if not(self.config_json['core_only'] == 'true'):
             return self
         if not(self.config_json['core_associations'] == 'true'):
@@ -46,6 +52,13 @@ class BuildCode:
 
 
     def entity_builder(self, metadata: bool):
+        """ 
+        Builds the output files for metadata and Extensions Entities and Subtypes
+            
+        Parameters
+        ==========
+        metadata - set to True if this is sourced from metadata else False
+        """
         entity_file_name = self.target_path
         if metadata:
             entity_file_name = entity_file_name + "/BaseEntity.puml"
@@ -107,6 +120,13 @@ class BuildCode:
         return self
 
     def delegate_builder(self, metadata: bool):
+        """ 
+        Builds the output files for metadata and Extensions Delegates
+            
+        Parameters
+        ==========
+        metadata - set to True if this is sourced from metadata else False
+        """
         uml_name = ''
         steryotype = ''
         class_colour = ''
@@ -158,6 +178,13 @@ class BuildCode:
         return self
 
     def typelist_builder(self, metadata: bool):
+        """ 
+        Builds the output files for metadata and Extensions Typelists
+            
+        Parameters
+        ==========
+        metadata - set to True if this is sourced from metadata else False
+        """
         target_file_name = self.target_path
         uml_name = ''
         if metadata:
@@ -171,7 +198,7 @@ class BuildCode:
         file = open(target_file_name, 'w')
         file.write(f"@startuml {uml_name}\n\n")
         file.write('skinparam enum {\n')
-        file.write(f'\tBackgroundColor<<Typelist>> {self.config_json["typelist_colour"]}\n')
+        file.write(f'\tBackgroundColor<<typelist>> {self.config_json["typelist_colour"]}\n')
         file.write('}\n')
         file.write('\n')
         for structure in self.plant_structures:
@@ -193,8 +220,21 @@ class BuildCode:
         file.close()
         return self
 
-    def process_item(self, in_item_name):
-        process = False
+    def process_item(self, in_item_name) -> bool:
+        """
+        Identifies if an entity should be processed or not, this is based on the information in the
+        json configuration file.
+
+        Parameters
+        ==========
+        in_item_name - The name of the entity to be checked.
+
+        Return
+        ======
+        True - if the item specified by the passed name should be included in the output files.
+        False - if the item should not be included in the output files
+        """
+        process: bool = False
         if self.config_json['include_custom'] == 'true':
             if in_item_name.find(self.config_json['custom_prefix']) >= 0:
                 return True
