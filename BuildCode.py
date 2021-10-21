@@ -97,8 +97,9 @@ class BuildCode:
                     process = self.process_item(structure.name)
                 if process:
                     file.write(f'class {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    for key, value in structure.columns.items():
-                        file.write(f'\t{key} : {value}\n')
+                    if self.config_json['entity_contents'] == 'true':
+                            for key, value in structure.columns.items():
+                                file.write(f'\t{key} : {value}\n')
                     file.write('} \n')
                     for key, value in structure.implements_entities.items():
                         if self.process_item(value):
@@ -157,8 +158,9 @@ class BuildCode:
                     process = self.process_item(structure.name)
                 if process:
                     file.write(f'abstract {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    for key, value in structure.columns.items():
-                        file.write(f'\t{key} : {value}\n')
+                    if self.config_json['delegate_contents'] == 'true':
+                        for key, value in structure.columns.items():
+                            file.write(f'\t{key} : {value}\n')
                     file.write('} \n')
                     for key, value in structure.implements_entities.items():
                         if self.process_item(value):

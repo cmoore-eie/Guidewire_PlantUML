@@ -8,6 +8,8 @@
     "entity_colour": "Coral",
     "meta_entity_colour": "Wheat",
     "typelist_contents": "false",
+    "entity_contents": "false",
+    "delegate_contents": "false",
     "typelist_colour": "PaleTurquoise",
     "remove_unlinked": "true",
     "plantuml_limit_size": "81920",
