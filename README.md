@@ -10,21 +10,25 @@ For a more complete writeup please visit [cmoore.pl](https://chrismoore.pl/visua
 
 ```json
 {
+    "structure": "GuidewireStructure",
     "include_custom": "false",
     "custom_prefix": "_PMP",
     "source_path": "./Development/Projects/cms/cms_pc_pmp/1012",
     "target_path": "/tmp/Scratch",
-    "core_only": "true",
     "delegate_colour": "WhiteSmoke",
     "entity_colour": "Coral",
     "meta_entity_colour": "Wheat",
     "typelist_contents": "false",
+    "entity_contents": "true",
+    "delegate_contents": "false",
     "typelist_colour": "PaleTurquoise",
     "remove_unlinked": "false",
     "plantuml_limit_size": "81920",
     "generate_diagram": "true",
     "local_plantuml_jar": "/Users/XXX/Tools/PlantUML/plantuml.jar",
     "diagram_format_flag": "-tsvg",
+    "core_only": "false",
+    "core_associations": "true",
     "core_entities": [
         {"core_entity": "PolicyPeriod"},
         {"core_entity": "Account"},
@@ -41,6 +45,7 @@ For a more complete writeup please visit [cmoore.pl](https://chrismoore.pl/visua
 
 | Name                | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
+| structure           | The source structure that will be used, currently only **GuidewireStructure** is valid |
 | Include_custom      | **true** will include entities that are prefiexed with the provided prefix in custom_prefix, **false** will not include these files specifically. |
 | custom_prefix       | The prefix used for custom entities.                         |
 | source_path         | The path to the Guidewire local code                         |
@@ -49,7 +54,9 @@ For a more complete writeup please visit [cmoore.pl](https://chrismoore.pl/visua
 | delegate_colour     | The colour used for delegates in the generated diagram       |
 | entity_colour       | The colour used for the entities in the generated diagram    |
 | meta_entity_colour  | The colour used for the entities that are generated from the metadata |
-| typelist_contents   | Set to **true** if the codes for the typeslists is to be included |
+| typelist_contents   | Set to **true** if the codes for the typeslists will to be included |
+| entity_contents     | Set to **true** if the columns for the entities will to be included |
+| delegate_contents   | Set to **true** if the columns for the delegates will to be included |
 | typelist_colour     | The color used for typelists in the generated diagram        |
 | remove_unlinked     | A setting for the generated code to remove from the generated diargam any entities that has no relationship to another entity |
 | core_entities       | An array of core entity names that are used to limit the generate only if core_only is set to **true** |
