@@ -2,3 +2,11 @@
 *.pyc
 .idea
 .vscode
+
+build
+build
+GeneratePlantUML.spec
+
+Pipfile
+
+Pipfile.lock
