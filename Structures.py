@@ -128,7 +128,7 @@ class GuidewireStructure:
             structure.stereotype = "Typelist"
         if structure.type == '':
             structure.type = 'typelist'
-        if self.config_json['typelist_contents'] == 'true':
+        if self.config_json['typelist_contents'].lower() == 'true':
             for component in root.iter():
                 try:
                     tag = component.tag.split("}")[1]

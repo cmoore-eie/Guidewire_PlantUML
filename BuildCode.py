@@ -22,11 +22,12 @@ class BuildCode:
         self.delegate_builder(False)
         self.entity_builder(True)
         self.entity_builder(False)
-        if self.config_json['generate_diagram'] == 'true':
+        if self.config_json['generate_diagram'].lower() == 'true':
             command = 'java -DPLANTUML_LIMIT_SIZE=' + self.config_json['plantuml_limit_size']
             command = command + ' -jar ' + self.config_json['local_plantuml_jar'] 
             command = command + ' ' + self.config_json['diagram_format_flag']+ ' -verbose '
             command = command + self.target_path + "/ExtensionEntity.puml"
+            print(command)
             os.system(command)
 
     def extend_core(self):
@@ -34,9 +35,9 @@ class BuildCode:
         When core association is true and core entities are being processed this function will add the
         additional entities to the list of the core entities to alow then to be processed
         """
-        if not(self.config_json['core_only'] == 'true'):
+        if not(self.config_json['core_only'].lower() == 'true'):
             return self
-        if not(self.config_json['core_associations'] == 'true'):
+        if not(self.config_json['core_associations'].lower() == 'true'):
             return self
         for core_name in self.core_entities.copy():
             structure: PlantContent
@@ -80,7 +81,7 @@ class BuildCode:
             file.write("!include BaseEntity.puml\n")
             file.write("!include ExtensionTypelist.puml\n")
             file.write("!include ExtensionDelegate.puml\n\n")
-        if self.config_json['remove_unlinked'] == 'true':
+        if self.config_json['remove_unlinked'].lower() == 'true':
             file.write("remove @unlinked\n\n")
         file.write('skinparam class {\n')
         file.write(f'\tBackgroundColor<<{stereotype}>> {class_colour}\n')
@@ -97,7 +98,7 @@ class BuildCode:
                     process = self.process_item(structure.name)
                 if process:
                     file.write(f'class {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['entity_contents'] == 'true':
+                    if self.config_json['entity_contents'].lower() == 'true':
                             for key, value in structure.columns.items():
                                 file.write(f'\t{key} : {value}\n')
                     file.write('} \n')
@@ -158,7 +159,7 @@ class BuildCode:
                     process = self.process_item(structure.name)
                 if process:
                     file.write(f'abstract {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['delegate_contents'] == 'true':
+                    if self.config_json['delegate_contents'].lower() == 'true':
                         for key, value in structure.columns.items():
                             file.write(f'\t{key} : {value}\n')
                     file.write('} \n')
@@ -214,7 +215,7 @@ class BuildCode:
                     process = self.process_item(structure.name)
                 if process:
                     file.write(f'enum {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['typelist_contents'] == 'true':
+                    if self.config_json['typelist_contents'].lower() == 'true':
                         for key, value in structure.type_codes.items():
                             file.write(f'\t{key}\n')
                     file.write('} \n\n')
@@ -237,7 +238,7 @@ class BuildCode:
         False - if the item should not be included in the output files
         """
         process: bool = False
-        if self.config_json['include_custom'] == 'true':
+        if self.config_json['include_custom'].lower() == 'true':
             if in_item_name.find(self.config_json['custom_prefix']) >= 0:
                 return True
         if self.core_only == 'true':
