@@ -7,21 +7,26 @@ from lxml import etree
 class GuidewireStructure:
 
     def build(self):
+        print('')
+        print('Building Entity Strutures')
+        print('=========================')
         self.process_entity(True)
         self.process_entity(False)
+        print('Building Typelist Strutures')
+        print('===========================')
         self.process_typelist(True)
         self.process_typelist(False)
+        print('')
+        print(f'{self.item_count} items processed')
 
     def process_entity(self, metadata: bool):
         path: str = ''
         if metadata:
-            print("Building Meta Structure")
-            print('=======================')
             path = self.meta_entity_source_path
         else:
-            print("Building Entity Structure")
-            print('=========================')
             path = self.entity_source_path
+
+        print(path)
             
         for x in os.listdir(path):
             tree = etree.parse(path + '/' + x)
@@ -35,23 +40,23 @@ class GuidewireStructure:
                 self.entity_builder(metadata, root)
             if root_type == 'delegate':
                 self.entity_builder(metadata, root)
+            self.item_count = self.item_count + 1
         return self
 
     def process_typelist(self, metadata: bool):
         path: str = ''
         if metadata:
-            print("Building Typelist Meta Structure")
-            print('================================')
             path = self.meta_typelist_source_path
         else:
-            print("Building Typelist Structure")
-            print('===========================')
             path = self.typelist_source_path
+
+        print(path)
 
         for x in os.listdir(path):
             tree = etree.parse(path + '/' + x)
             root = tree.getroot()
             self.typelist_builder(metadata, root)
+            self.item_count = self.item_count + 1
         return self
 
     def entity_builder(self, metadata: bool, root):
@@ -62,7 +67,6 @@ class GuidewireStructure:
             entity_name: str = root.attrib['entityName']
         else:
             entity_name: str = root.attrib['entity']
-        print(f'{root_type}: {entity_name}')
         structure = Utilities.find_plant_structure(self.plant_structures, entity_name)
         if structure.metadata == '':
             if metadata:
@@ -117,7 +121,6 @@ class GuidewireStructure:
 
     def typelist_builder(self, metadata: bool, root):
         typelist_name = root.attrib['name']
-        print(f'typelist: {typelist_name}')
         structure = Utilities.find_plant_structure(self.plant_structures, typelist_name, True)
         if structure.metadata == '':
             if metadata:
@@ -140,6 +143,7 @@ class GuidewireStructure:
                     pass
 
     def __init__(self, in_config_json):
+        self.item_count = 0
         self.config_json = in_config_json
         self.plant_structures: list[PlantContent] = list()
         self.entity_source_path = self.config_json[

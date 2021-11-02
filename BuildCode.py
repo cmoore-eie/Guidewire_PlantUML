@@ -12,12 +12,13 @@ class BuildCode:
         Main function to process the information and generate the puml output files, if configured
         the diagram will also be created based on the generated output files
         """
-        print("")
+        print('')
         print("Processing Entities")
         print("===================")
         self.extend_core()
-        self.typelist_builder(True)
-        self.typelist_builder(False)
+        if not self.config_json['typelist_hidden'].lower() == 'true':
+            self.typelist_builder(True)
+            self.typelist_builder(False)
         self.delegate_builder(True)
         self.delegate_builder(False)
         self.entity_builder(True)
@@ -25,7 +26,11 @@ class BuildCode:
         if self.config_json['generate_diagram'].lower() == 'true':
             command = 'java -DPLANTUML_LIMIT_SIZE=' + self.config_json['plantuml_limit_size']
             command = command + ' -jar ' + self.config_json['local_plantuml_jar'] 
-            command = command + ' ' + self.config_json['diagram_format_flag']+ ' -verbose '
+            command = command + ' ' + self.config_json['diagram_format_flag']
+            if self.config_json['diagram_verbose'].lower() == 'true':
+                command = command + ' -verbose '
+            else:
+                command = command + ' '
             command = command + self.target_path + "/ExtensionEntity.puml"
             print(command)
             os.system(command)
@@ -46,8 +51,10 @@ class BuildCode:
                     structure = check_structure
             for key, value in structure.arrays.items():
                 self.core_entities.append(value)
-            for key, value in structure.type_keys.items():
-                self.core_entities.append(key)
+            if not self.config_json['typelist_hidden'].lower() == 'true':
+                for key, value in structure.type_keys.items():
+                    jsonval = self.config_json['typelist_hidden']
+                    self.core_entities.append(key)
             for key, value in structure.foreign_keys.items():
                 self.core_entities.append(value)
 
@@ -76,10 +83,12 @@ class BuildCode:
         file = open(entity_file_name, 'w')
         file.write(f"@startuml {uml_name}\n\n")
         file.write("!include BaseDelegate.puml\n")
-        file.write("!include BaseTypelist.puml\n\n")
+        if not self.config_json['typelist_hidden'].lower() == 'true':
+            file.write("!include BaseTypelist.puml\n\n")
         if not metadata:
             file.write("!include BaseEntity.puml\n")
-            file.write("!include ExtensionTypelist.puml\n")
+            if not self.config_json['typelist_hidden'].lower() == 'true':
+                file.write("!include ExtensionTypelist.puml\n")
             file.write("!include ExtensionDelegate.puml\n\n")
         if self.config_json['remove_unlinked'].lower() == 'true':
             file.write("remove @unlinked\n\n")
