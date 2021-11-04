@@ -87,6 +87,10 @@ def checkAndFixJson(config_json):
         config_json['plantuml_limit_size'] = '81920'
         json_defaults[len(json_defaults) + 1] = f'Defaulting plantuml_limit_size to 81920'
 
+    if 'plantuml_theme' not in config_json:
+        config_json['plantuml_theme'] = ''
+        json_defaults[len(json_defaults) + 1] = f'Defaulting plantuml_theme to None'
+
     if 'diagram_format_flag' not in config_json:
         config_json['diagram_format_flag'] = '-tsvg'
         json_defaults[len(json_defaults) + 1] = f'Defaulting diagram_format_flag to -tsvg'
