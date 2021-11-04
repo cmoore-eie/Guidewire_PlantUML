@@ -86,13 +86,16 @@ class BuildCode:
         if not self.config_json['typelist_hidden'].lower() == 'true':
             file.write("!include BaseTypelist.puml\n\n")
         if not metadata:
+            if not self.config_json['plantuml_theme'] == '':
+                plant_theme = '!theme ' + self.config_json['plantuml_theme']
+                file.write(f'{plant_theme} \n')
             file.write("!include BaseEntity.puml\n")
             if not self.config_json['typelist_hidden'].lower() == 'true':
                 file.write("!include ExtensionTypelist.puml\n")
             file.write("!include ExtensionDelegate.puml\n\n")
         if self.config_json['remove_unlinked'].lower() == 'true':
             file.write("remove @unlinked\n\n")
-        file.write('skinparam class {\n')
+        file.write('skinparam entity {\n')
         file.write(f'\tBackgroundColor<<{stereotype}>> {class_colour}\n')
         file.write('}\n')
         file.write('\n')

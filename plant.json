@@ -13,6 +13,7 @@
     "typelist_colour": "PaleTurquoise",
     "remove_unlinked": "true",
     "plantuml_limit_size": "81920",
+    "plantuml_theme": "cerulean-outline",
     "generate_diagram": "true",
     "local_plantuml_jar": "/Users/christophermoore/Development/Tools/PlantUML/plantuml.jar",
     "diagram_format_flag": "-tsvg",
