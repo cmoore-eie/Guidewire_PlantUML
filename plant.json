@@ -4,6 +4,7 @@
     "custom_prefix": "_PMP",
     "source_path": "/Users/christophermoore/Development/Projects/cms/cms_pc_pmp/1012",
     "target_path": "/Users/christophermoore/Scratch/model",
+    "one_file": "true",
     "delegate_colour": "WhiteSmoke",
     "entity_colour": "Coral",
     "meta_entity_colour": "Wheat",
@@ -13,7 +14,7 @@
     "typelist_colour": "PaleTurquoise",
     "remove_unlinked": "true",
     "plantuml_limit_size": "81920",
-    "plantuml_theme": "cerulean-outline",
+    "plantuml_theme": "guidewire from /Users/christophermoore/Development/Projects/cms/cms_community/plant_themes",
     "generate_diagram": "true",
     "local_plantuml_jar": "/Users/christophermoore/Development/Tools/PlantUML/plantuml.jar",
     "diagram_format_flag": "-tsvg",
@@ -30,7 +31,6 @@
         {"core_entity": "Cost"},
         {"core_entity": "AccountContact"},
         {"core_entity": "Contact"},
-        {"core_entity": "VirtualProduct_PMP"},
         {"core_entity": "PolicyContactRole"}
     ]
 }

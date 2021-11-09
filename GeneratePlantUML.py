@@ -53,6 +53,8 @@ def main(argv):
             print(f'The configuration file {config_file} has not been found')
             sys.exit(1)
         config_json = checkAndFixJson(json.load(file))
+        config_json['one_file_name'] = os.path.basename(file.name).split('.')[0]
+        print(config_json['one_file_name'])
         build_structure_class = globals()[config_json['structure']]
         build_structure = build_structure_class(config_json)
         build_structure.build()
@@ -63,6 +65,19 @@ def checkAndFixJson(config_json):
     """
     Checks the json information and where there is missing information this is set to a default value
     """
+    if 'one_file' not in config_json:
+        config_json['one_file'] = 'true'
+        json_defaults[len(json_defaults) + 1] = f'Defaulting one_file to true'
+
+    if 'plantuml_theme' not in config_json:
+        config_json['plantuml_theme'] = ''
+        json_defaults[len(json_defaults) + 1] = f'Defaulting plantuml_theme to empty string'
+    else:
+        config_json['delegate_colour'] = ''
+        config_json['entity_colour'] = ''
+        config_json['meta_entity_colour'] = ''
+        config_json['typelist_colour'] = ''
+
     if 'delegate_colour' not in config_json:
         config_json['delegate_colour'] = 'WhiteSmoke'
         json_defaults[len(json_defaults) + 1] = f'Defaulting delegate_colour to WhiteSmoke'
@@ -70,11 +85,11 @@ def checkAndFixJson(config_json):
     if 'entity_colour' not in config_json:
         config_json['entity_colour'] = 'Coral'
         json_defaults[len(json_defaults) + 1] = f'Defaulting entity_colour to Coral'
-
+        
     if 'meta_entity_colour' not in config_json:
         config_json['meta_entity_colour'] = 'Wheat'
         json_defaults[len(json_defaults) + 1] = f'Defaulting meta_entity_colour to Wheat'
-
+        
     if 'typelist_colour' not in config_json:
         config_json['typelist_colour'] = 'PaleTurquoise'
         json_defaults[len(json_defaults) + 1] = f'Defaulting typelist_colour to PaleTurquoise'
