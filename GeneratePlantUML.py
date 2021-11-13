@@ -54,7 +54,6 @@ def main(argv):
             sys.exit(1)
         config_json = checkAndFixJson(json.load(file))
         config_json['one_file_name'] = os.path.basename(file.name).split('.')[0]
-        print(config_json['one_file_name'])
         build_structure_class = globals()[config_json['structure']]
         build_structure = build_structure_class(config_json)
         build_structure.build()
