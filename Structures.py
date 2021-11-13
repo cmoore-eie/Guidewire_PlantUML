@@ -29,9 +29,13 @@ class GuidewireStructure:
         print(path)
             
         for x in os.listdir(path):
-            tree = etree.parse(path + '/' + x)
+            parser = etree.XMLParser(remove_comments=True)
+            tree = etree.parse(path + '/' + x, parser)
             root = tree.getroot()
-            root_type = root.tag.split("}")[1]
+            if '}' in root.tag:
+                root_type = root.tag.split("}")[1]
+            else:
+                root_type = root.tag
             if root_type == 'entity':
                 self.entity_builder(metadata, root)
             if root_type == 'extension':
@@ -60,7 +64,10 @@ class GuidewireStructure:
         return self
 
     def entity_builder(self, metadata: bool, root):
-        root_type = root.tag.split("}")[1]
+        if '}' in root.tag:
+            root_type = root.tag.split("}")[1]
+        else:
+            root_type = root.tag
         if root_type == 'delegate':
             entity_name: str = root.attrib['name']
         elif root_type == 'extension':
@@ -68,6 +75,11 @@ class GuidewireStructure:
         else:
             entity_name: str = root.attrib['entity']
         structure = Utilities.find_plant_structure(self.plant_structures, entity_name)
+        if root_type == 'extension':
+            if structure.stereotype == 'Base':
+                structure.stereotype = 'Base Extended'
+            if structure.stereotype == 'Entity':
+                structure.stereotype = 'Entity Extended'
         if structure.metadata == '':
             if metadata:
                 structure.metadata = 'true'
@@ -88,7 +100,10 @@ class GuidewireStructure:
             structure.stereotype = "Delegate"
         for component in root.iter():
             try:
-                tag = component.tag.split("}")[1]
+                if '}' in component.tag:
+                    tag = component.tag.split("}")[1]
+                else:
+                    tag = component.tag
                 if tag == 'column':
                     col_name = component.get("name")
                     col_type = component.get("type")
