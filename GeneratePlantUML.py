@@ -1,7 +1,8 @@
 import getopt
 import json
-import os
 import sys
+from json import JSONDecodeError
+
 from Structures import *
 from BuildCode import BuildCode
 
@@ -50,17 +51,23 @@ def main(argv):
         try:
             file = open(config_file)
         except FileNotFoundError:
-            print(f'The configuration file {config_file} has not been found')
+            print(f'ERROR - The configuration file {config_file} has not been found')
             sys.exit(1)
-        config_json = checkAndFixJson(json.load(file))
-        config_json['one_file_name'] = os.path.basename(file.name).split('.')[0]
-        build_structure_class = globals()[config_json['structure']]
-        build_structure = build_structure_class(config_json)
-        build_structure.build()
-        build_types = BuildCode(config_json, build_structure.plant_structures)
-        build_types.type_builder()
+        try:
+            decoded_json = json.load(file)
+            config_json = check_and_fix_json(decoded_json)
+            config_json['one_file_name'] = os.path.basename(file.name).split('.')[0]
+            build_structure_class = globals()[config_json['structure']]
+            build_structure = build_structure_class(config_json)
+            build_structure.build()
+            build_types = BuildCode(config_json, build_structure.plant_structures)
+            build_types.type_builder()
+        except JSONDecodeError:
+            print(f'ERROR - The json file {config_file} is invalid and needs correcting before use')
+            sys.exit(1)
 
-def checkAndFixJson(config_json):
+
+def check_and_fix_json(config_json):
     """
     Checks the json information and where there is missing information this is set to a default value
     """
@@ -116,6 +123,9 @@ def checkAndFixJson(config_json):
     if 'delegate_contents' not in config_json:
         json_errors[len(json_errors) + 1] = 'delegate_contents has not been set'
 
+    if 'delegate_hidden' not in config_json:
+        json_errors[len(json_errors) + 1] = 'delegate_hidden has not been set'
+
     if 'entity_contents' not in config_json:
         json_errors[len(json_errors) + 1] = 'entity_contents has not been set'
 
@@ -162,7 +172,7 @@ def checkAndFixJson(config_json):
             if 'local_plantuml_jar' in config_json:
                 local_plantuml_jar = config_json['local_plantuml_jar']
                 if not os.path.exists(local_plantuml_jar):
-                    json_errors[len(json_errors) + 1] = f'local_plantuml_jar {target_path} is invalid'
+                    json_errors[len(json_errors) + 1] = f'local_plantuml_jar {local_plantuml_jar} is invalid'
             else:
                 json_errors[len(json_errors) + 1] = f'local_plantuml_jar has not been set'
 
