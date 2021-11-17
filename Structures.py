@@ -4,23 +4,23 @@ import Utilities
 
 from lxml import etree
 
+
 class GuidewireStructure:
 
     def build(self):
         print('')
-        print('Building Entity Strutures')
-        print('=========================')
+        print('Building Entity Structures')
+        print('==========================')
         self.process_entity(True)
         self.process_entity(False)
-        print('Building Typelist Strutures')
-        print('===========================')
+        print('Building Typelist Structures')
+        print('============================')
         self.process_typelist(True)
         self.process_typelist(False)
         print('')
         print(f'{self.item_count} items processed')
 
     def process_entity(self, metadata: bool):
-        path: str = ''
         if metadata:
             path = self.meta_entity_source_path
         else:
@@ -48,7 +48,6 @@ class GuidewireStructure:
         return self
 
     def process_typelist(self, metadata: bool):
-        path: str = ''
         if metadata:
             path = self.meta_typelist_source_path
         else:
@@ -128,7 +127,7 @@ class GuidewireStructure:
                 if tag == 'edgeForeignKey':
                     foreignkey_entity = component.get("fkentity")
                     foreignkey_name = component.get("name")
-                    if not (Utilities.foreignkey_in_array(self.plant_structures,foreignkey_entity, entity_name)):
+                    if not (Utilities.foreignkey_in_array(self.plant_structures, foreignkey_entity, entity_name)):
                         structure.add_foreign_key(foreignkey_name, foreignkey_entity)
             except AttributeError:
                 pass
@@ -161,15 +160,10 @@ class GuidewireStructure:
         self.item_count = 0
         self.config_json = in_config_json
         self.plant_structures: list[PlantContent] = list()
-        self.entity_source_path = self.config_json[
-                                      'source_path'] + '/' + "modules/configuration/config/extensions/entity"
-        self.delegate_source_path = self.config_json[
-                                        'source_path'] + '/' + "modules/configuration/config/extensions/entity"
-        self.typelist_source_path = self.config_json[
-                                        'source_path'] + '/' + "modules/configuration/config/extensions/typelist"
-        self.meta_entity_source_path = self.config_json[
-                                           'source_path'] + '/' + "modules/configuration/config/metadata/entity"
-        self.meta_delegate_source_path = self.config_json[
-                                             'source_path'] + '/' + "modules/configuration/config/metadata/entity"
-        self.meta_typelist_source_path = self.config_json[
-                                             'source_path'] + '/' + "modules/configuration/config/metadata/typelist"
+        source_path = self.config_json['source_path']
+        self.entity_source_path = source_path + '/' + "modules/configuration/config/extensions/entity"
+        self.delegate_source_path = source_path + '/' + "modules/configuration/config/extensions/entity"
+        self.typelist_source_path = source_path + '/' + "modules/configuration/config/extensions/typelist"
+        self.meta_entity_source_path = source_path + '/' + "modules/configuration/config/metadata/entity"
+        self.meta_delegate_source_path = source_path + '/' + "modules/configuration/config/metadata/entity"
+        self.meta_typelist_source_path = source_path + '/' + "modules/configuration/config/metadata/typelist"

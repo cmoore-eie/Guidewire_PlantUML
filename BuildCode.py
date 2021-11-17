@@ -1,11 +1,11 @@
 import os
-from typing import Any
 from PlantContent import PlantContent
+
 
 class BuildCode:
     """ 
     Creates the output files used to generate the diagram, and if configured will
-    generate the diagem in the fromat specified in the json configuration
+    generate the diagram in the format specified in the json configuration
     """
 
     def type_builder(self):
@@ -17,50 +17,28 @@ class BuildCode:
         print("Processing Entities")
         print("===================")
         self.extend_core()
-        file: Any
+        self.__maybe_setup_one_file()
+        if not self.typelist_hidden:
+            self.typelist_builder(True)
+            self.typelist_builder(False)
+        if not self.delegate_hidden:
+            self.delegate_builder(True)
+            self.delegate_builder(False)
+        self.entity_builder(True)
+        self.entity_builder(False)
         if self.one_file:
-            write_file = self.target_path + '/' + self.config_json['one_file_name'] + '.puml'
-            file = open(write_file, 'w')
-            file.write('@startuml ' + self.config_json['one_file_name'] + '\n\n')
-            if not self.config_json['plantuml_theme'] == '':
-                plant_theme = '!theme ' + self.config_json['plantuml_theme']
-                file.write(f'{plant_theme} \n')
-            if self.config_json['remove_unlinked'].lower() == 'true':
-                file.write("remove @unlinked\n\n")
-        if not self.config_json['typelist_hidden'].lower() == 'true':
-            self.typelist_builder(True, file)
-            self.typelist_builder(False, file)
-        self.delegate_builder(True, file)
-        self.delegate_builder(False, file)
-        self.entity_builder(True, file)
-        self.entity_builder(False, file)
-        if self.one_file:
-            file.write("@enduml\n")
-            file.close()
-        if self.config_json['generate_diagram'].lower() == 'true':
-            command = 'java -DPLANTUML_LIMIT_SIZE=' + self.config_json['plantuml_limit_size']
-            command = command + ' -jar ' + self.config_json['local_plantuml_jar'] 
-            command = command + ' ' + self.config_json['diagram_format_flag']
-            if self.config_json['diagram_verbose'].lower() == 'true':
-                command = command + ' -verbose '
-            else:
-                command = command + ' '
-            if self.one_file:
-                write_file = self.target_path + '/' + self.config_json['one_file_name'] + '.puml'
-                command = command + write_file
-            else:
-                command = command + self.target_path + "/ExtensionEntity.puml"
-            print(command)
-            os.system(command)
+            self.current_file.write('@enduml\n')
+            self.current_file.close()
+        self.__maybe_create_diagram()
 
     def extend_core(self):
         """
         When core association is true and core entities are being processed this function will add the
-        additional entities to the list of the core entities to alow then to be processed
+        additional entities to the list of the core entities to allow then to be processed
         """
-        if not(self.config_json['core_only'].lower() == 'true'):
+        if not (self.config_json['core_only'].lower() == 'true'):
             return self
-        if not(self.config_json['core_associations'].lower() == 'true'):
+        if not (self.config_json['core_associations'].lower() == 'true'):
             return self
         for core_name in self.core_entities.copy():
             structure: PlantContent
@@ -71,13 +49,11 @@ class BuildCode:
                 self.core_entities.append(value)
             if not self.config_json['typelist_hidden'].lower() == 'true':
                 for key, value in structure.type_keys.items():
-                    jsonval = self.config_json['typelist_hidden']
                     self.core_entities.append(key)
             for key, value in structure.foreign_keys.items():
                 self.core_entities.append(value)
 
-
-    def entity_builder(self, metadata: bool, file):
+    def entity_builder(self, metadata: bool):
         """ 
         Builds the output files for metadata and Extensions Entities and Subtypes
             
@@ -99,25 +75,25 @@ class BuildCode:
             stereotype = "Entity"
             print("entities - Extensions")
         if self.one_file is not True:
-            file = open(entity_file_name, 'w')
-            file.write(f"@startuml {uml_name}\n\n")
-            file.write("!include BaseDelegate.puml\n")
+            self.current_file = open(entity_file_name, 'w')
+            self.current_file.write(f"@startuml {uml_name}\n\n")
+            self.current_file.write("!include BaseDelegate.puml\n")
             if not self.config_json['typelist_hidden'].lower() == 'true':
-                file.write("!include BaseTypelist.puml\n\n")
+                self.current_file.write("!include BaseTypelist.puml\n\n")
             if not metadata:
                 if not self.config_json['plantuml_theme'] == '':
                     plant_theme = '!theme ' + self.config_json['plantuml_theme']
-                    file.write(f'{plant_theme} \n')
-                file.write("!include BaseEntity.puml\n")
+                    self.current_file.write(f'{plant_theme} \n')
+                self.current_file.write("!include BaseEntity.puml\n")
                 if not self.config_json['typelist_hidden'].lower() == 'true':
-                    file.write("!include ExtensionTypelist.puml\n")
-                file.write("!include ExtensionDelegate.puml\n\n")
+                    self.current_file.write("!include ExtensionTypelist.puml\n")
+                self.current_file.write("!include ExtensionDelegate.puml\n\n")
             if self.config_json['remove_unlinked'].lower() == 'true':
-                file.write("remove @unlinked\n\n")
+                self.current_file.write("remove @unlinked\n\n")
         if self.config_json['plantuml_theme'] == '':
-            file.write('skinparam class {\n')
-            file.write(f'\tBackgroundColor<<{stereotype}>> {class_colour}\n')
-            file.write('}\n\n')
+            self.current_file.write('skinparam class {\n')
+            self.current_file.write(f'\tBackgroundColor<<{stereotype}>> {class_colour}\n')
+            self.current_file.write('}\n\n')
         for structure in self.plant_structures:
             if structure.type == 'entity' or structure.type == 'subtype':
                 process = False
@@ -126,34 +102,27 @@ class BuildCode:
                 if not metadata and not (structure.metadata == 'true'):
                     process = True
                 if process:
-                    process = self.process_item(structure.name)
+                    process = self.__process_item(structure.name)
                 if process:
-                    file.write(f'class {structure.name} <<{structure.stereotype}>>' + ' {\n')
+                    self.current_file.write(f'class {structure.name} <<{structure.stereotype}>>' + ' {\n')
                     if self.config_json['entity_contents'].lower() == 'true':
-                            for key, value in structure.columns.items():
-                                file.write(f'\t{key} : {value}\n')
-                    file.write('} \n')
-                    for key, value in structure.implements_entities.items():
-                        if self.process_item(value):
-                          file.write(f'{structure.name} ..> {value}\n')
-                    for key, value in structure.arrays.items():
-                        if self.process_item(value):
-                          file.write(f'{structure.name} *-- "{key}" {value}\n')
-                    for key, value in structure.type_keys.items():
-                        if self.process_item(key):
-                          file.write(f'{structure.name} --> "{value}" {key}\n')
-                    for key, value in structure.foreign_keys.items():
-                        if self.process_item(value):
-                          file.write(f'{structure.name} --> "{key}" {value}\n')
+                        for key, value in structure.columns.items():
+                            self.current_file.write(f'\t{key} : {value}\n')
+                    self.current_file.write('} \n')
+                    self.__write_implements(structure)
+                    self.__write_arrays(structure)
+                    self.__write_typekeys(structure)
+                    self.__write_typekeys(structure)
+                    self.__write_foreign_keys(structure)
                     if structure.type == 'subtype':
-                        file.write(f'{structure.name} --|> {structure.subtype}\n')
-                    file.write("\n")
+                        self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
+                    self.current_file.write("\n")
         if self.one_file is not True:
-            file.write("@enduml\n")
-            file.close()
+            self.current_file.write("@enduml\n")
+            self.current_file.close()
         return self
 
-    def delegate_builder(self, metadata: bool, file):
+    def delegate_builder(self, metadata: bool):
         """ 
         Builds the output files for metadata and Extensions Delegates
             
@@ -161,9 +130,6 @@ class BuildCode:
         ==========
         metadata - set to True if this is sourced from metadata else False
         """
-        uml_name = ''
-        steryotype = ''
-        class_colour = ''
         if metadata:
             delegate_file_name = self.target_path + "/BaseDelegate.puml"
             uml_name = 'BaseDelegate'
@@ -174,13 +140,13 @@ class BuildCode:
             uml_name = 'ExtensionDelegate'
             class_colour = self.config_json['delegate_colour']
             print("delegates - Extensions")
-        if self.one_file is not True:            
-            file = open(delegate_file_name, 'w')
-            file.write(f"@startuml {uml_name}\n")
+        if self.one_file is not True:
+            self.current_file = open(delegate_file_name, 'w')
+            self.current_file.write(f"@startuml {uml_name}\n")
         if self.config_json['plantuml_theme'] == '':
-            file.write('skinparam class {\n')
-            file.write(f'\tBackgroundColor<<Delegate>> {class_colour}\n')
-            file.write('}\n\n')
+            self.current_file.write('skinparam class {\n')
+            self.current_file.write(f'\tBackgroundColor<<Delegate>> {class_colour}\n')
+            self.current_file.write('}\n\n')
         for structure in self.plant_structures:
             if structure.type == 'delegate':
                 process = False
@@ -189,32 +155,24 @@ class BuildCode:
                 if not metadata and not (structure.metadata == 'true'):
                     process = True
                 if process:
-                    process = self.process_item(structure.name)
+                    process = self.__process_item(structure.name)
                 if process:
-                    file.write(f'abstract {structure.name} <<{structure.stereotype}>>' + ' {\n')
+                    self.current_file.write(f'abstract {structure.name} <<{structure.stereotype}>>' + ' {\n')
                     if self.config_json['delegate_contents'].lower() == 'true':
                         for key, value in structure.columns.items():
-                            file.write(f'\t{key} : {value}\n')
-                    file.write('} \n')
-                    for key, value in structure.implements_entities.items():
-                        if self.process_item(value):
-                            file.write(f'{structure.name} ..> {value}\n')
-                    for key, value in structure.arrays.items():
-                        if self.process_item(value):
-                            file.write(f'{structure.name} *-- "{key}" {value}\n')
-                    for key, value in structure.type_keys.items():
-                        if self.process_item(key):
-                            file.write(f'{structure.name} --> "{value}" {key}\n')
-                    for key, value in structure.foreign_keys.items():
-                        if self.process_item(value):
-                            file.write(f'{structure.name} --> "{key}" {value}\n')
-                    file.write("\n")
+                            self.current_file.write(f'\t{key} : {value}\n')
+                    self.current_file.write('} \n')
+                    self.__write_implements(structure)
+                    self.__write_arrays(structure)
+                    self.__write_typekeys(structure)
+                    self.__write_foreign_keys(structure)
+                    self.current_file.write("\n")
         if self.one_file is not True:
-            file.write("@enduml\n")
-            file.close()
+            self.current_file.write("@enduml\n")
+            self.current_file.close()
         return self
 
-    def typelist_builder(self, metadata: bool, file):
+    def typelist_builder(self, metadata: bool):
         """ 
         Builds the output files for metadata and Extensions Typelists
             
@@ -223,7 +181,6 @@ class BuildCode:
         metadata - set to True if this is sourced from metadata else False
         """
         target_file_name = self.target_path
-        uml_name = ''
         if metadata:
             target_file_name = target_file_name + "/BaseTypelist.puml"
             uml_name = 'BaseTypelists'
@@ -233,12 +190,12 @@ class BuildCode:
             uml_name = 'ExtensionTypelist'
             print("typelists - Extensions")
         if self.one_file is not True:
-            file = open(target_file_name, 'w')
-            file.write(f"@startuml {uml_name}\n\n")
+            self.current_file = open(target_file_name, 'w')
+            self.current_file.write(f"@startuml {uml_name}\n\n")
         if self.config_json['plantuml_theme'] == '':
-            file.write('skinparam enum {\n')
-            file.write(f'\tBackgroundColor<<typelist>> {self.config_json["typelist_colour"]}\n')
-            file.write('}\n\n')
+            self.current_file.write('skinparam enum {\n')
+            self.current_file.write(f'\tBackgroundColor<<typelist>> {self.config_json["typelist_colour"]}\n')
+            self.current_file.write('}\n\n')
         for structure in self.plant_structures:
             if structure.type == 'typelist':
                 process = False
@@ -247,19 +204,73 @@ class BuildCode:
                 if not metadata and not (structure.metadata == 'true'):
                     process = True
                 if process:
-                    process = self.process_item(structure.name)
+                    process = self.__process_item(structure.name)
                 if process:
-                    file.write(f'enum {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['typelist_contents'].lower() == 'true':
-                        for key, value in structure.type_codes.items():
-                            file.write(f'\t{key}\n')
-                    file.write('} \n\n')
+                    self.current_file.write(f'enum {structure.name} <<{structure.stereotype}>>' + ' {\n')
+                    self.__write_typelist_contents(structure)
+                    self.current_file.write('} \n\n')
         if self.one_file is not True:
-            file.write("@enduml\n")
-            file.close()
+            self.current_file.write("@enduml\n")
+            self.current_file.close()
         return self
 
-    def process_item(self, in_item_name) -> bool:
+    def __write_implements(self, structure: PlantContent):
+        for key, value in structure.implements_entities.items():
+            if self.__process_item(value):
+                self.current_file.write(f'{structure.name} ..> {value}\n')
+
+    def __write_arrays(self, structure: PlantContent):
+        for key, value in structure.arrays.items():
+            if self.__process_item(value):
+                self.current_file.write(f'{structure.name} *-- "{key}" {value}\n')
+
+    def __write_typekeys(self, structure: PlantContent):
+        for key, value in structure.type_keys.items():
+            if self.__process_item(key):
+                self.current_file.write(f'{structure.name} --> "{value}" {key}\n')
+
+    def __write_foreign_keys(self, structure: PlantContent):
+        for key, value in structure.foreign_keys.items():
+            if self.__process_item(value):
+                self.current_file.write(f'{structure.name} --> "{key}" {value}\n')
+
+    def __write_typelist_contents(self, structure):
+        if self.config_json['typelist_contents'].lower() == 'true':
+            for key, value in structure.type_codes.items():
+                self.current_file.write(f'\t{key}\n')
+
+    def __maybe_setup_one_file(self):
+        if not self.one_file:
+            return
+        write_file = self.target_path + '/' + self.config_json['one_file_name'] + '.puml'
+        self.current_file = open(write_file, 'w')
+        self.current_file.write('@startuml ' + self.config_json['one_file_name'] + '\n\n')
+        if not self.config_json['plantuml_theme'] == '':
+            plant_theme = '!theme ' + self.config_json['plantuml_theme']
+            self.current_file.write(f'{plant_theme} \n')
+        if self.config_json['remove_unlinked'].lower() == 'true':
+            self.current_file.write("remove @unlinked\n\n")
+
+    def __maybe_create_diagram(self):
+        if not self.generate_diagram:
+            return
+
+        command = 'java -DPLANTUML_LIMIT_SIZE=' + self.config_json['plantuml_limit_size']
+        command = command + ' -jar ' + self.config_json['local_plantuml_jar']
+        command = command + ' ' + self.config_json['diagram_format_flag']
+        if self.config_json['diagram_verbose'].lower() == 'true':
+            command = command + ' -verbose '
+        else:
+            command = command + ' '
+        if self.one_file:
+            write_file = self.target_path + '/' + self.config_json['one_file_name'] + '.puml'
+            command = command + write_file
+        else:
+            command = command + self.target_path + "/ExtensionEntity.puml"
+        print(command)
+        os.system(command)
+
+    def __process_item(self, in_item_name) -> bool:
         """
         Identifies if an entity should be processed or not, this is based on the information in the
         json configuration file.
@@ -291,6 +302,19 @@ class BuildCode:
         self.core_only = self.config_json['core_only']
         self.core_entities: list[str] = list()
         self.one_file = False
+        self.current_file = None
+        if self.config_json['typelist_hidden'].lower() == 'true':
+            self.typelist_hidden = True
+        else:
+            self.typelist_hidden = False
+        if self.config_json['delegate_hidden'].lower() == 'true':
+            self.delegate_hidden = True
+        else:
+            self.delegate_hidden = False
+        if self.config_json['generate_diagram'].lower() == 'true':
+            self.generate_diagram = True
+        else:
+            self.generate_diagram = False
         if self.config_json['one_file'].lower() == 'true':
             self.one_file = True
         for entity in self.config_json["core_entities"]:

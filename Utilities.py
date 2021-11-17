@@ -1,5 +1,6 @@
 from PlantContent import PlantContent
 
+
 def find_plant_structure(plant_structures: list[PlantContent], in_name, enum: bool = False) -> PlantContent:
     for structure in plant_structures:
         if structure.name == in_name:
@@ -27,7 +28,7 @@ def foreignkey_in_array(plant_structures: list[PlantContent], foreignkey_entity:
 
 def remove_foreignkey_in_array(plant_structures: list[PlantContent], array_entity: str, entity_name: str):
     """
-    Identifies if there is a corrisponding foreign key defined for the target entity in the arrray, if one is found it
+    Identifies if there is a corresponding foreign key defined for the target entity in the array, if one is found it
     is removed to make sure that the relationship shown is only that of the array.
     """    
     for structure in plant_structures:
