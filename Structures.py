@@ -107,6 +107,10 @@ class GuidewireStructure:
                     col_name = component.get("name")
                     col_type = component.get("type")
                     structure.add_column(col_name, col_type)
+                if tag == 'monetaryamount':
+                    col_name = component.get("name")
+                    col_type = "monetaryamount"
+                    structure.add_column(col_name, col_type)
                 if tag == 'implementsEntity':
                     implements_entity_name = component.get("name")
                     structure.add_implements_entity(implements_entity_name)
