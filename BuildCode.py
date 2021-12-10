@@ -303,19 +303,24 @@ class BuildCode:
         self.core_entities: list[str] = list()
         self.one_file = False
         self.current_file = None
+
         if self.config_json['typelist_hidden'].lower() == 'true':
             self.typelist_hidden = True
         else:
             self.typelist_hidden = False
+
         if self.config_json['delegate_hidden'].lower() == 'true':
             self.delegate_hidden = True
         else:
             self.delegate_hidden = False
+
         if self.config_json['generate_diagram'].lower() == 'true':
             self.generate_diagram = True
         else:
             self.generate_diagram = False
+
         if self.config_json['one_file'].lower() == 'true':
             self.one_file = True
+
         for entity in self.config_json["core_entities"]:
             self.core_entities.append(entity["core_entity"])
