@@ -112,7 +112,6 @@ class BuildCode:
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
                     self.__write_typekeys(structure)
-                    self.__write_typekeys(structure)
                     self.__write_foreign_keys(structure)
                     if structure.type == 'subtype':
                         self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
