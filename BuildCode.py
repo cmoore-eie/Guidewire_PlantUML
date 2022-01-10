@@ -285,8 +285,11 @@ class BuildCode:
         """
         process: bool = False
         if self.config_json['include_custom'].lower() == 'true':
-            if in_item_name.find(self.config_json['custom_prefix']) >= 0:
-                return True
+            if 'custom_prefix' in self.config_json:
+                if in_item_name.endswith(self.config_json['custom_prefix']) >= 0:
+                    return True
+            if 'custom_suffix' in self.config_json:
+                return in_item_name.startswith(self.config_json['custom_suffix'])
         if self.core_only == 'true':
             if in_item_name in self.core_entities:
                 process = True

@@ -148,8 +148,14 @@ def check_and_fix_json(config_json):
         json_errors[len(json_errors) + 1] = 'include_custom has not been set'
     else:
         if config_json['include_custom'].lower() == 'true':
-            if 'custom_prefix' not in config_json:
-                json_errors[len(json_errors) + 1] = 'custom_prefix must be set when include_custom is true'
+            prefix_indicator = False
+            suffix_indicator = False
+            if 'custom_suffix' in config_json:
+                suffix_indicator = True
+            if 'custom_prefix' in config_json:
+                prefix_indicator = True
+            if suffix_indicator is False and prefix_indicator is False:
+                json_errors[len(json_errors) + 1] = 'custom_prefix or custom_suffix must be set when include_custom is true'
 
     if 'source_path' in config_json:
         source_path = config_json['source_path']
