@@ -289,7 +289,9 @@ class BuildCode:
                 if in_item_name.endswith(self.config_json['custom_prefix']) >= 0:
                     return True
             if 'custom_suffix' in self.config_json:
-                return in_item_name.startswith(self.config_json['custom_suffix'])
+                if in_item_name.startswith(self.config_json['custom_suffix']) is True:
+                    return True
+
         if self.core_only == 'true':
             if in_item_name in self.core_entities:
                 process = True
