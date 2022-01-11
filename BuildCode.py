@@ -16,6 +16,7 @@ class BuildCode:
         print('')
         print("Processing Entities")
         print("===================")
+        self.extend_typelists()
         self.extend_core()
         self.__maybe_setup_one_file()
         if not self.typelist_hidden:
@@ -30,6 +31,24 @@ class BuildCode:
             self.current_file.write('@enduml\n')
             self.current_file.close()
         self.__maybe_create_diagram()
+
+    def extend_typelists(self):
+        """
+        When looking for custom entities the typelists may be missed as they dont fit with the
+        criteria. In these instances when searching for custom entities and typelists are to
+        be shown, the typelist names are extracted and added to the custom custom_typelists.
+        """
+        if not (self.config_json['typelist_hidden'].lower() == 'false'):
+            return self
+        if not (self.config_json['include_custom'].lower() == 'true'):
+            return self
+        for structure in self.plant_structures:
+            if structure.type == 'entity' or structure.type == 'subtype':
+                if self.__process_custom(structure.name) is True:
+                    for key, value in structure.type_keys.items():
+                        if not (key in self.custom_typelists):
+                            self.custom_typelists.append(key)
+        return self
 
     def extend_core(self):
         """
@@ -284,6 +303,32 @@ class BuildCode:
         False - if the item should not be included in the output files
         """
         process: bool = False
+        if self.__process_custom(in_item_name) is True:
+            return True
+
+        if self.core_only == 'true':
+            if in_item_name in self.core_entities:
+                process = True
+            if in_item_name in self.custom_typelists:
+                process = True
+        else:
+            process = True
+        return process
+
+    def __process_custom(self, in_item_name) -> bool:
+        """
+        Identifies if an entity matches the custom criteria.
+
+        Parameters
+        ==========
+        in_item_name - The name of the entity to be checked.
+
+        Return
+        ======
+        True - if the item specified by the passed name matches the custom criteria
+        False - if the item is not a match for the custom criteria
+        """
+
         if self.config_json['include_custom'].lower() == 'true':
             if 'custom_prefix' in self.config_json:
                 if in_item_name.endswith(self.config_json['custom_prefix']) >= 0:
@@ -291,13 +336,7 @@ class BuildCode:
             if 'custom_suffix' in self.config_json:
                 if in_item_name.startswith(self.config_json['custom_suffix']) is True:
                     return True
-
-        if self.core_only == 'true':
-            if in_item_name in self.core_entities:
-                process = True
-        else:
-            process = True
-        return process
+        return False
 
     def __init__(self, in_config_json, in_plant_structures: list[PlantContent]):
         self.config_json = in_config_json
@@ -305,6 +344,7 @@ class BuildCode:
         self.target_path = self.config_json['target_path']
         self.core_only = self.config_json['core_only']
         self.core_entities: list[str] = list()
+        self.custom_typelists: list[str] = list()
         self.one_file = False
         self.current_file = None
 
