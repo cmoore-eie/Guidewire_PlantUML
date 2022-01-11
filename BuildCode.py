@@ -50,7 +50,7 @@ class BuildCode:
                             if not (key in self.custom_additions):
                                 self.custom_additions.append(key)
                     if not self.delegate_hidden:
-                        for key in structure.implements_entities.items():
+                        for key, value in structure.implements_entities.items():
                             if not (key in self.custom_additions):
                                 self.custom_additions.append(key)
         return self
