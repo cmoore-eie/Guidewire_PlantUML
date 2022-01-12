@@ -35,8 +35,8 @@ class BuildCode:
     def add_custom_additions(self):
         """
         When looking for custom entities the typelists and delegates may be missed as they dont fit with the
-        criteria. In these instances when searching for custom entities and typelists are to
-        be shown, the typelist names are extracted and added to the custom custom_typelists.
+        criteria. In these instances when searching for custom entities and typelists or delegates are to
+        be shown, the typelist or delegate names are extracted and added to the custom custom_additions.
         """
         if self.typelist_hidden is True and self.delegate_hidden is True:
             return self
@@ -45,7 +45,7 @@ class BuildCode:
         for structure in self.plant_structures:
             if structure.type == 'entity' or structure.type == 'subtype':
                 if self.__process_custom(structure.name) is True:
-                    if not self.typelist_hidden:
+                    if self.typelist_hidden is False:
                         for key, value in structure.type_keys.items():
                             if not (key in self.custom_additions):
                                 self.custom_additions.append(key)
@@ -71,7 +71,7 @@ class BuildCode:
                     structure = check_structure
             for key, value in structure.arrays.items():
                 self.core_entities.append(value)
-            if not self.config_json['typelist_hidden'].lower() == 'true':
+            if self.typelist_hidden is False:
                 for key, value in structure.type_keys.items():
                     self.core_entities.append(key)
             for key, value in structure.foreign_keys.items():
@@ -102,14 +102,14 @@ class BuildCode:
             self.current_file = open(entity_file_name, 'w')
             self.current_file.write(f"@startuml {uml_name}\n\n")
             self.current_file.write("!include BaseDelegate.puml\n")
-            if not self.config_json['typelist_hidden'].lower() == 'true':
+            if self.typelist_hidden is False:
                 self.current_file.write("!include BaseTypelist.puml\n\n")
             if not metadata:
                 if not self.config_json['plantuml_theme'] == '':
                     plant_theme = '!theme ' + self.config_json['plantuml_theme']
                     self.current_file.write(f'{plant_theme} \n')
                 self.current_file.write("!include BaseEntity.puml\n")
-                if not self.config_json['typelist_hidden'].lower() == 'true':
+                if self.typelist_hidden is False:
                     self.current_file.write("!include ExtensionTypelist.puml\n")
                 self.current_file.write("!include ExtensionDelegate.puml\n\n")
             if self.config_json['remove_unlinked'].lower() == 'true':
