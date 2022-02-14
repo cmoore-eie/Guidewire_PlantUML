@@ -132,14 +132,16 @@ class BuildCode:
                     process = self.__process_item(structure.name)
                 if process:
                     namespace = {'config_json': self.config_json, 'structure': structure}
-                    template_str = Utilities.build_template('class.tmpl', namespace)
+                    template_str = Utilities.build_template('class', namespace)
                     self.current_file.write(template_str)
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
                     self.__write_typekeys(structure)
                     self.__write_foreign_keys(structure)
                     if structure.type == 'subtype':
-                        self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
+                        namespace = {'config_json': self.config_json, 'structure': structure}
+                        template_str = Utilities.build_template('class', namespace)
+                        # self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
                     self.current_file.write("\n")
         if self.one_file is not True:
             self.current_file.write("@enduml\n")
@@ -182,7 +184,7 @@ class BuildCode:
                     process = self.__process_item(structure.name)
                 if process:
                     namespace = {'config_json': self.config_json, 'structure': structure}
-                    template_str = Utilities.build_template('delegate.tmpl', namespace)
+                    template_str = Utilities.build_template('delegate', namespace)
                     self.current_file.write(template_str)
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
@@ -229,7 +231,7 @@ class BuildCode:
                     process = self.__process_item(structure.name)
                 if process:
                     namespace = {'config_json': self.config_json, 'structure': structure}
-                    template_str = Utilities.build_template('typelist.tmpl', namespace)
+                    template_str = Utilities.build_template('typelist', namespace)
                     self.current_file.write(template_str)
         if self.one_file is not True:
             self.current_file.write("@enduml\n")
@@ -240,28 +242,28 @@ class BuildCode:
         for key, value in structure.implements_entities.items():
             if self.__process_item(value):
                 namespace = {'Name': structure.name, 'ImplementsName': value}
-                template_str = Utilities.build_template('implements.tmpl', namespace)
+                template_str = Utilities.build_template('implements', namespace)
                 self.current_file.write(template_str)
 
     def __write_arrays(self, structure: PlantContent):
         for key, value in structure.arrays.items():
             if self.__process_item(value):
                 namespace = {'Name': structure.name, 'ArrayName': key, 'ArrayType': value}
-                template_str = Utilities.build_template('arrays.tmpl', namespace)
+                template_str = Utilities.build_template('arrays', namespace)
                 self.current_file.write(template_str)
 
     def __write_typekeys(self, structure: PlantContent):
         for key, value in structure.type_keys.items():
             if self.__process_item(key):
                 namespace = {'Name': structure.name, 'TypekeyName': value, 'TypekeyType': key}
-                template_str = Utilities.build_template('typekeys.tmpl', namespace)
+                template_str = Utilities.build_template('typekeys', namespace)
                 self.current_file.write(template_str)
 
     def __write_foreign_keys(self, structure: PlantContent):
         for key, value in structure.foreign_keys.items():
             if self.__process_item(value):
                 namespace = {'Name': structure.name, 'ForeignKeyName': key, 'ForeignKeyType': value}
-                template_str = Utilities.build_template('foreignkeys.tmpl', namespace)
+                template_str = Utilities.build_template('foreignkeys', namespace)
                 self.current_file.write(template_str)
 
     def __maybe_setup_one_file(self):

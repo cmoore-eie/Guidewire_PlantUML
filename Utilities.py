@@ -1,6 +1,6 @@
+import PUMLTemplate
 from PlantContent import PlantContent
 import importlib.resources as pkg_resources
-import templates.puml
 from Cheetah.Template import Template
 
 
@@ -9,7 +9,7 @@ def find_plant_structure(plant_structures: list[PlantContent], in_name, enum: bo
         if structure.name == in_name:
             if enum and structure.type == 'typelist':
                 return structure
-            if not enum and not(structure.type == 'typelist'):
+            if not enum and not (structure.type == 'typelist'):
                 return structure
     structure = PlantContent()
     structure.name = in_name
@@ -21,7 +21,7 @@ def foreignkey_in_array(plant_structures: list[PlantContent], foreignkey_entity:
     """
     Before adding a foreign key a check is done to find if there is an array already defined. If an array is found
     the foreign key will not be created.
-    """    
+    """
     for structure in plant_structures:
         if structure.name == foreignkey_entity:
             if entity_name in structure.arrays.values():
@@ -33,7 +33,7 @@ def remove_foreignkey_in_array(plant_structures: list[PlantContent], array_entit
     """
     Identifies if there is a corresponding foreign key defined for the target entity in the array, if one is found it
     is removed to make sure that the relationship shown is only that of the array.
-    """    
+    """
     for structure in plant_structures:
         if structure.name == array_entity:
             foreign_keys_copy = structure.foreign_keys.copy()
@@ -42,7 +42,22 @@ def remove_foreignkey_in_array(plant_structures: list[PlantContent], array_entit
                     structure.foreign_keys.pop(key)
                     return
 
+
 def build_template(template_name, namespace) -> str:
-    template_file = pkg_resources.read_text(templates.puml, template_name)
-    template = Template(template_file, searchList=[namespace])
+    if template_name == 'class':
+        template_str = PUMLTemplate.get_class_template()
+    elif template_name == 'delegate':
+        template_str = PUMLTemplate.get_delegate_template()
+    elif template_name == 'typelist':
+        template_str = PUMLTemplate.get_typelist_template()
+    elif template_name == 'implements':
+        template_str = PUMLTemplate.get_implements_template()
+    elif template_name == 'arrays':
+        template_str = PUMLTemplate.get_array_template()
+    elif template_name == 'typekeys':
+        template_str = PUMLTemplate.get_typekeys_template()
+    elif template_name == 'foreignkeys':
+        template_str = PUMLTemplate.get_foreignkey_template()
+
+    template = Template(template_str, searchList=[namespace])
     return str(template)
