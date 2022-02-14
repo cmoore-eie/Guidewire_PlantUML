@@ -1,0 +1,11 @@
+#set typlist_contents = $config_json['typelist_contents'].lower()
+#set TypelistName = $structure.name
+#set Stereotype = $structure.stereotype
+##
+enum ${TypelistName} <<${Stereotype}>> {
+  #if $typlist_contents == 'true':
+    #for key, value in $structure.type_codes.items():
+  $key
+    #end for
+  #end if
+}

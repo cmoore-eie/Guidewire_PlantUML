@@ -1,5 +1,8 @@
 import os
+
+import Utilities
 from PlantContent import PlantContent
+from Utilities import *
 
 
 class BuildCode:
@@ -128,11 +131,9 @@ class BuildCode:
                 if process:
                     process = self.__process_item(structure.name)
                 if process:
-                    self.current_file.write(f'class {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['entity_contents'].lower() == 'true':
-                        for key, value in structure.columns.items():
-                            self.current_file.write(f'\t{key} : {value}\n')
-                    self.current_file.write('} \n')
+                    namespace = {'config_json': self.config_json, 'structure': structure}
+                    template_str = Utilities.build_template('class.tmpl', namespace)
+                    self.current_file.write(template_str)
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
                     self.__write_typekeys(structure)
@@ -180,11 +181,9 @@ class BuildCode:
                 if process:
                     process = self.__process_item(structure.name)
                 if process:
-                    self.current_file.write(f'abstract {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['delegate_contents'].lower() == 'true':
-                        for key, value in structure.columns.items():
-                            self.current_file.write(f'\t{key} : {value}\n')
-                    self.current_file.write('} \n')
+                    namespace = {'config_json': self.config_json, 'structure': structure}
+                    template_str = Utilities.build_template('delegate.tmpl', namespace)
+                    self.current_file.write(template_str)
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
                     self.__write_typekeys(structure)
@@ -229,9 +228,9 @@ class BuildCode:
                 if process:
                     process = self.__process_item(structure.name)
                 if process:
-                    self.current_file.write(f'enum {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    self.__write_typelist_contents(structure)
-                    self.current_file.write('} \n\n')
+                    namespace = {'config_json': self.config_json, 'structure': structure}
+                    template_str = Utilities.build_template('typelist.tmpl', namespace)
+                    self.current_file.write(template_str)
         if self.one_file is not True:
             self.current_file.write("@enduml\n")
             self.current_file.close()
@@ -240,27 +239,30 @@ class BuildCode:
     def __write_implements(self, structure: PlantContent):
         for key, value in structure.implements_entities.items():
             if self.__process_item(value):
-                self.current_file.write(f'{structure.name} ..> {value}\n')
+                namespace = {'Name': structure.name, 'ImplementsName': value}
+                template_str = Utilities.build_template('implements.tmpl', namespace)
+                self.current_file.write(template_str)
 
     def __write_arrays(self, structure: PlantContent):
         for key, value in structure.arrays.items():
             if self.__process_item(value):
-                self.current_file.write(f'{structure.name} *-- "{key}" {value}\n')
+                namespace = {'Name': structure.name, 'ArrayName': key, 'ArrayType': value}
+                template_str = Utilities.build_template('arrays.tmpl', namespace)
+                self.current_file.write(template_str)
 
     def __write_typekeys(self, structure: PlantContent):
         for key, value in structure.type_keys.items():
             if self.__process_item(key):
-                self.current_file.write(f'{structure.name} --> "{value}" {key}\n')
+                namespace = {'Name': structure.name, 'TypekeyName': value, 'TypekeyType': key}
+                template_str = Utilities.build_template('typekeys.tmpl', namespace)
+                self.current_file.write(template_str)
 
     def __write_foreign_keys(self, structure: PlantContent):
         for key, value in structure.foreign_keys.items():
             if self.__process_item(value):
-                self.current_file.write(f'{structure.name} --> "{key}" {value}\n')
-
-    def __write_typelist_contents(self, structure):
-        if self.config_json['typelist_contents'].lower() == 'true':
-            for key, value in structure.type_codes.items():
-                self.current_file.write(f'\t{key}\n')
+                namespace = {'Name': structure.name, 'ForeignKeyName': key, 'ForeignKeyType': value}
+                template_str = Utilities.build_template('foreignkeys.tmpl', namespace)
+                self.current_file.write(template_str)
 
     def __maybe_setup_one_file(self):
         if not self.one_file:

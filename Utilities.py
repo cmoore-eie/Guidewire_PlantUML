@@ -1,4 +1,7 @@
 from PlantContent import PlantContent
+import importlib.resources as pkg_resources
+import templates.puml
+from Cheetah.Template import Template
 
 
 def find_plant_structure(plant_structures: list[PlantContent], in_name, enum: bool = False) -> PlantContent:
@@ -38,3 +41,8 @@ def remove_foreignkey_in_array(plant_structures: list[PlantContent], array_entit
                 if value == entity_name:
                     structure.foreign_keys.pop(key)
                     return
+
+def build_template(template_name, namespace) -> str:
+    template_file = pkg_resources.read_text(templates.puml, template_name)
+    template = Template(template_file, searchList=[namespace])
+    return str(template)
