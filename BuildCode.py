@@ -1,5 +1,8 @@
 import os
+
+import Utilities
 from PlantContent import PlantContent
+from Utilities import *
 
 
 class BuildCode:
@@ -35,8 +38,8 @@ class BuildCode:
     def add_custom_additions(self):
         """
         When looking for custom entities the typelists and delegates may be missed as they dont fit with the
-        criteria. In these instances when searching for custom entities and typelists are to
-        be shown, the typelist names are extracted and added to the custom custom_typelists.
+        criteria. In these instances when searching for custom entities and typelists or delegates are to
+        be shown, the typelist or delegate names are extracted and added to the custom custom_additions.
         """
         if self.typelist_hidden is True and self.delegate_hidden is True:
             return self
@@ -45,7 +48,7 @@ class BuildCode:
         for structure in self.plant_structures:
             if structure.type == 'entity' or structure.type == 'subtype':
                 if self.__process_custom(structure.name) is True:
-                    if not self.typelist_hidden:
+                    if self.typelist_hidden is False:
                         for key, value in structure.type_keys.items():
                             if not (key in self.custom_additions):
                                 self.custom_additions.append(key)
@@ -71,7 +74,7 @@ class BuildCode:
                     structure = check_structure
             for key, value in structure.arrays.items():
                 self.core_entities.append(value)
-            if not self.config_json['typelist_hidden'].lower() == 'true':
+            if self.typelist_hidden is False:
                 for key, value in structure.type_keys.items():
                     self.core_entities.append(key)
             for key, value in structure.foreign_keys.items():
@@ -102,14 +105,14 @@ class BuildCode:
             self.current_file = open(entity_file_name, 'w')
             self.current_file.write(f"@startuml {uml_name}\n\n")
             self.current_file.write("!include BaseDelegate.puml\n")
-            if not self.config_json['typelist_hidden'].lower() == 'true':
+            if self.typelist_hidden is False:
                 self.current_file.write("!include BaseTypelist.puml\n\n")
             if not metadata:
                 if not self.config_json['plantuml_theme'] == '':
                     plant_theme = '!theme ' + self.config_json['plantuml_theme']
                     self.current_file.write(f'{plant_theme} \n')
                 self.current_file.write("!include BaseEntity.puml\n")
-                if not self.config_json['typelist_hidden'].lower() == 'true':
+                if self.typelist_hidden is False:
                     self.current_file.write("!include ExtensionTypelist.puml\n")
                 self.current_file.write("!include ExtensionDelegate.puml\n\n")
             if self.config_json['remove_unlinked'].lower() == 'true':
@@ -128,17 +131,17 @@ class BuildCode:
                 if process:
                     process = self.__process_item(structure.name)
                 if process:
-                    self.current_file.write(f'class {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['entity_contents'].lower() == 'true':
-                        for key, value in structure.columns.items():
-                            self.current_file.write(f'\t{key} : {value}\n')
-                    self.current_file.write('} \n')
+                    namespace = {'config_json': self.config_json, 'structure': structure}
+                    template_str = Utilities.build_template('class', namespace)
+                    self.current_file.write(template_str)
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
                     self.__write_typekeys(structure)
                     self.__write_foreign_keys(structure)
                     if structure.type == 'subtype':
-                        self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
+                        namespace = {'config_json': self.config_json, 'structure': structure}
+                        template_str = Utilities.build_template('class', namespace)
+                        # self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
                     self.current_file.write("\n")
         if self.one_file is not True:
             self.current_file.write("@enduml\n")
@@ -180,11 +183,9 @@ class BuildCode:
                 if process:
                     process = self.__process_item(structure.name)
                 if process:
-                    self.current_file.write(f'abstract {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    if self.config_json['delegate_contents'].lower() == 'true':
-                        for key, value in structure.columns.items():
-                            self.current_file.write(f'\t{key} : {value}\n')
-                    self.current_file.write('} \n')
+                    namespace = {'config_json': self.config_json, 'structure': structure}
+                    template_str = Utilities.build_template('delegate', namespace)
+                    self.current_file.write(template_str)
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
                     self.__write_typekeys(structure)
@@ -229,9 +230,9 @@ class BuildCode:
                 if process:
                     process = self.__process_item(structure.name)
                 if process:
-                    self.current_file.write(f'enum {structure.name} <<{structure.stereotype}>>' + ' {\n')
-                    self.__write_typelist_contents(structure)
-                    self.current_file.write('} \n\n')
+                    namespace = {'config_json': self.config_json, 'structure': structure}
+                    template_str = Utilities.build_template('typelist', namespace)
+                    self.current_file.write(template_str)
         if self.one_file is not True:
             self.current_file.write("@enduml\n")
             self.current_file.close()
@@ -240,27 +241,30 @@ class BuildCode:
     def __write_implements(self, structure: PlantContent):
         for key, value in structure.implements_entities.items():
             if self.__process_item(value):
-                self.current_file.write(f'{structure.name} ..> {value}\n')
+                namespace = {'Name': structure.name, 'ImplementsName': value}
+                template_str = Utilities.build_template('implements', namespace)
+                self.current_file.write(template_str)
 
     def __write_arrays(self, structure: PlantContent):
         for key, value in structure.arrays.items():
             if self.__process_item(value):
-                self.current_file.write(f'{structure.name} *-- "{key}" {value}\n')
+                namespace = {'Name': structure.name, 'ArrayName': key, 'ArrayType': value}
+                template_str = Utilities.build_template('arrays', namespace)
+                self.current_file.write(template_str)
 
     def __write_typekeys(self, structure: PlantContent):
         for key, value in structure.type_keys.items():
             if self.__process_item(key):
-                self.current_file.write(f'{structure.name} --> "{value}" {key}\n')
+                namespace = {'Name': structure.name, 'TypekeyName': value, 'TypekeyType': key}
+                template_str = Utilities.build_template('typekeys', namespace)
+                self.current_file.write(template_str)
 
     def __write_foreign_keys(self, structure: PlantContent):
         for key, value in structure.foreign_keys.items():
             if self.__process_item(value):
-                self.current_file.write(f'{structure.name} --> "{key}" {value}\n')
-
-    def __write_typelist_contents(self, structure):
-        if self.config_json['typelist_contents'].lower() == 'true':
-            for key, value in structure.type_codes.items():
-                self.current_file.write(f'\t{key}\n')
+                namespace = {'Name': structure.name, 'ForeignKeyName': key, 'ForeignKeyType': value}
+                template_str = Utilities.build_template('foreignkeys', namespace)
+                self.current_file.write(template_str)
 
     def __maybe_setup_one_file(self):
         if not self.one_file:
