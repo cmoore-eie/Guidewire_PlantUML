@@ -5,7 +5,7 @@ from PlantContent import PlantContent
 from Utilities import *
 
 
-class BuildCode:
+class BuildPUMLCode:
     """ 
     Creates the output files used to generate the diagram, and if configured will
     generate the diagram in the format specified in the json configuration
@@ -140,7 +140,8 @@ class BuildCode:
                     self.__write_foreign_keys(structure)
                     if structure.type == 'subtype':
                         namespace = {'config_json': self.config_json, 'structure': structure}
-                        template_str = Utilities.build_template('class', namespace)
+                        template_str = Utilities.build_template('subtype', namespace)
+                        self.current_file.write(template_str)
                         # self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
                     self.current_file.write("\n")
         if self.one_file is not True:

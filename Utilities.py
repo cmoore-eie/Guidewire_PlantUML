@@ -58,6 +58,8 @@ def build_template(template_name, namespace) -> str:
         template_str = PUMLTemplate.get_typekeys_template()
     elif template_name == 'foreignkeys':
         template_str = PUMLTemplate.get_foreignkey_template()
+    elif template_name == 'subtype':
+        template_str = PUMLTemplate.get_subtype_template()
 
     template = Template(template_str, searchList=[namespace])
     return str(template)
