@@ -1,6 +1,5 @@
 import PUMLTemplate
 from PlantContent import PlantContent
-import importlib.resources as pkg_resources
 from Cheetah.Template import Template
 
 
