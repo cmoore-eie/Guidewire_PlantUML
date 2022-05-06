@@ -10,7 +10,7 @@ from BuildPUMLCode import BuildPUMLCode
 help_str = '''
 
 Please supply the arguments for -c
-        -c, --configuration - path to the configuration file
+        -c, --config - path to the json configuration file
         -h, --help - displays this text
 
         '''

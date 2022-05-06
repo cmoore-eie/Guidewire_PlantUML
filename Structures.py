@@ -13,7 +13,7 @@ class GuidewireStructure:
         print('==========================')
         self.process_entity(True)
         self.process_entity(False)
-        print('Building Typelist Structures')
+        print('\nBuilding Typelist Structures')
         print('============================')
         self.process_typelist(True)
         self.process_typelist(False)
