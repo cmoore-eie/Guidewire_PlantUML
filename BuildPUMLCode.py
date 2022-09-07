@@ -301,7 +301,7 @@ class BuildPUMLCode:
     def __process_item(self, in_item_name) -> bool:
         """
         Identifies if an entity should be processed or not, this is based on the information in the
-        json configuration file.
+        json configuration file. If the item is in the excluded list it will not be processed
 
         Parameters
         ==========
@@ -313,6 +313,8 @@ class BuildPUMLCode:
         False - if the item should not be included in the output files
         """
         process: bool = False
+        if in_item_name in self.exclude_entities:
+            return process
         if self.__process_custom(in_item_name) is True:
             return True
 
@@ -323,6 +325,7 @@ class BuildPUMLCode:
                 process = True
         else:
             process = True
+
         return process
 
     def __process_custom(self, in_item_name) -> bool:
@@ -354,6 +357,7 @@ class BuildPUMLCode:
         self.target_path = self.config_json['target_path']
         self.core_only = self.config_json['core_only']
         self.core_entities: list[str] = list()
+        self.exclude_entities: list[str] = list()
         self.custom_additions: list[str] = list()
         self.one_file = False
         self.current_file = None
@@ -376,5 +380,10 @@ class BuildPUMLCode:
         if self.config_json['one_file'].lower() == 'true':
             self.one_file = True
 
-        for entity in self.config_json["core_entities"]:
-            self.core_entities.append(entity["core_entity"])
+        if 'core_entities' in self.config_json:
+            for entity in self.config_json["core_entities"]:
+                self.core_entities.append(entity["core_entity"])
+
+        if 'exclude_entities' in self.config_json:
+            for entity in self.config_json["exclude_entities"]:
+                self.exclude_entities.append(entity["exclude_entity"])

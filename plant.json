@@ -27,5 +27,8 @@
         {"core_entity": "AccountContact"},
         {"core_entity": "Contact"},
         {"core_entity": "PolicyContactRole"}
+    ],
+    "exclude_extities": [
+        {"exclude_entity": "test"}
     ]
 }
