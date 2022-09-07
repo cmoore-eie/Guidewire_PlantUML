@@ -2,10 +2,9 @@ import getopt
 import json
 import sys
 from json import JSONDecodeError
-
-from BuildJDLCode import BuildJDLCode
 from Structures import *
 from BuildPUMLCode import BuildPUMLCode
+from BuildJDLCode import BuildJDLCode
 
 help_str = '''
 
