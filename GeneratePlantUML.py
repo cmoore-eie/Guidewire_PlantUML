@@ -6,6 +6,7 @@ from Structures import *
 from BuildPUMLCode import BuildPUMLCode
 from BuildJDLCode import BuildJDLCode
 
+version_number = '3.0.1'
 help_str = '''
 
 Please supply the arguments for -c
@@ -20,6 +21,9 @@ json_defaults = dict()
 
 
 def main(argv):
+    print("")
+    print(f"Running version - {version_number}")
+    print("")
     config_file: str = ''
 
     try:
