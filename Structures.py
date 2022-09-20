@@ -79,6 +79,10 @@ class GuidewireStructure:
                 structure.stereotype = 'Base Extended'
             if structure.stereotype == 'Entity':
                 structure.stereotype = 'Entity Extended'
+        if 'type' in root.attrib.keys():
+            if root.attrib['type'] == 'effdated':
+                if not metadata:
+                    structure.stereotype = 'Effdated'
         if structure.metadata == '':
             if metadata:
                 structure.metadata = 'true'
