@@ -2,7 +2,6 @@ import os
 
 import Utilities
 from PlantContent import PlantContent
-from Utilities import *
 
 
 class BuildPUMLCode:
@@ -37,24 +36,24 @@ class BuildPUMLCode:
 
     def add_custom_additions(self):
         """
-        When looking for custom entities the typelists and delegates may be missed as they dont fit with the
-        criteria. In these instances when searching for custom entities and typelists or delegates are to
+        When looking for custom entities the type lists and delegates may be missed as they don't fit with the
+        criteria. In these instances when searching for custom entities and type lists or delegates are to
         be shown, the typelist or delegate names are extracted and added to the custom custom_additions.
         """
-        if self.typelist_hidden is True and self.delegate_hidden is True:
+        if self.typelist_hidden and self.delegate_hidden:
             return self
-        if not (self.config_json['include_custom'].lower() == 'true'):
+        if not self.include_custom:
             return self
         for structure in self.plant_structures:
             if structure.type == 'entity' or structure.type == 'subtype':
                 if self.__process_custom(structure.name) is True:
                     if self.typelist_hidden is False:
                         for key, value in structure.type_keys.items():
-                            if not (key in self.custom_additions):
+                            if key not in self.custom_additions:
                                 self.custom_additions.append(key)
                     if not self.delegate_hidden:
                         for key, value in structure.implements_entities.items():
-                            if not (key in self.custom_additions):
+                            if key not in self.custom_additions:
                                 self.custom_additions.append(key)
         return self
 
@@ -63,22 +62,20 @@ class BuildPUMLCode:
         When core association is true and core entities are being processed this function will add the
         additional entities to the list of the core entities to allow then to be processed
         """
-        if not (self.config_json['core_only'].lower() == 'true'):
+        if self.config_json['core_only'].lower() != 'true':
             return self
-        if not (self.config_json['core_associations'].lower() == 'true'):
+        if self.config_json['core_associations'].lower() != 'true':
             return self
         for core_name in self.core_entities.copy():
-            structure: PlantContent
+            structure: PlantContent = None
             for check_structure in self.plant_structures:
                 if check_structure.name == core_name:
                     structure = check_structure
-            for key, value in structure.arrays.items():
-                self.core_entities.append(value)
-            if self.typelist_hidden is False:
-                for key, value in structure.type_keys.items():
-                    self.core_entities.append(key)
-            for key, value in structure.foreign_keys.items():
-                self.core_entities.append(value)
+            if structure is not None:
+                self.core_entities.extend([value for value in structure.arrays.values()])
+                if self.typelist_hidden is False:
+                    self.core_entities.extend([value for value in structure.type_keys.keys()])
+                self.core_entities.extend([value for value in structure.foreign_keys.keys()])
 
     def entity_builder(self, metadata: bool):
         """ 
@@ -90,13 +87,13 @@ class BuildPUMLCode:
         """
         entity_file_name = self.target_path
         if metadata:
-            entity_file_name = entity_file_name + "/BaseEntity.puml"
+            entity_file_name += "/BaseEntity.puml"
             uml_name = 'BaseEntity'
             class_colour = self.config_json['meta_entity_colour']
             stereotype = "Base"
             print("entities - Metadata")
         else:
-            entity_file_name = entity_file_name + "/ExtensionEntity.puml"
+            entity_file_name += "/ExtensionEntity.puml"
             uml_name = 'ExtensionEntity'
             class_colour = self.config_json['entity_colour']
             stereotype = "Entity"
@@ -108,7 +105,7 @@ class BuildPUMLCode:
             if self.typelist_hidden is False:
                 self.current_file.write("!include BaseTypelist.puml\n\n")
             if not metadata:
-                if not self.config_json['plantuml_theme'] == '':
+                if self.config_json['plantuml_theme'] != '':
                     plant_theme = '!theme ' + self.config_json['plantuml_theme']
                     self.current_file.write(f'{plant_theme} \n')
                 self.current_file.write("!include BaseEntity.puml\n")
@@ -126,7 +123,7 @@ class BuildPUMLCode:
                 process = False
                 if metadata and structure.metadata == 'true':
                     process = True
-                if not metadata and not (structure.metadata == 'true'):
+                if not metadata and structure.metadata != 'true':
                     process = True
                 if process:
                     process = self.__process_item(structure.name)
@@ -179,7 +176,7 @@ class BuildPUMLCode:
                 process = False
                 if metadata and structure.metadata == 'true':
                     process = True
-                if not metadata and not (structure.metadata == 'true'):
+                if not metadata and structure.metadata != 'true':
                     process = True
                 if process:
                     process = self.__process_item(structure.name)
@@ -205,13 +202,13 @@ class BuildPUMLCode:
         ==========
         metadata - set to True if this is sourced from metadata else False
         """
-        target_file_name = self.target_path
+        target_file_name: str = self.target_path
         if metadata:
-            target_file_name = target_file_name + "/BaseTypelist.puml"
+            target_file_name += "/BaseTypelist.puml"
             uml_name = 'BaseTypelists'
             print("typelists - Metadata")
         else:
-            target_file_name = target_file_name + "/ExtensionTypelist.puml"
+            target_file_name += "/ExtensionTypelist.puml"
             uml_name = 'ExtensionTypelist'
             print("typelists - Extensions")
         if self.one_file is not True:
@@ -224,9 +221,11 @@ class BuildPUMLCode:
         for structure in self.plant_structures:
             if structure.type == 'typelist':
                 process = False
+                if self.is_also_entity(structure) is False:
+                    continue
                 if metadata and structure.metadata == 'true':
                     process = True
-                if not metadata and not (structure.metadata == 'true'):
+                if not metadata and structure.metadata != 'true':
                     process = True
                 if process:
                     process = self.__process_item(structure.name)
@@ -238,6 +237,15 @@ class BuildPUMLCode:
             self.current_file.write("@enduml\n")
             self.current_file.close()
         return self
+
+    def is_also_entity(self, structure: PlantContent) -> bool:
+        """If the typelist name is the same as that of another type then the typelist will be referring to subtypes"""
+        process = True
+        for test_structure in self.plant_structures:
+            if test_structure.type != 'typelist':
+                if test_structure.name == structure.name:
+                    return False
+        return process
 
     def __write_implements(self, structure: PlantContent):
         for key, value in structure.implements_entities.items():
@@ -273,7 +281,7 @@ class BuildPUMLCode:
         write_file = self.target_path + '/' + self.config_json['one_file_name'] + '.puml'
         self.current_file = open(write_file, 'w')
         self.current_file.write('@startuml ' + self.config_json['one_file_name'] + '\n\n')
-        if not self.config_json['plantuml_theme'] == '':
+        if self.config_json['plantuml_theme'] != '':
             plant_theme = '!theme ' + self.config_json['plantuml_theme']
             self.current_file.write(f'{plant_theme} \n')
         if self.config_json['remove_unlinked'].lower() == 'true':
@@ -287,9 +295,9 @@ class BuildPUMLCode:
         command = command + ' -jar ' + self.config_json['local_plantuml_jar']
         command = command + ' ' + self.config_json['diagram_format_flag']
         if self.config_json['diagram_verbose'].lower() == 'true':
-            command = command + ' -verbose '
+            command += ' -verbose '
         else:
-            command = command + ' '
+            command += ' '
         if self.one_file:
             write_file = self.target_path + '/' + self.config_json['one_file_name'] + '.puml'
             command = command + write_file
@@ -371,6 +379,11 @@ class BuildPUMLCode:
             self.delegate_hidden = True
         else:
             self.delegate_hidden = False
+
+        if self.config_json['include_custom'].lower() != 'true':
+            self.include_custom = False
+        else:
+            self.include_custom = True
 
         if self.config_json['generate_diagram'].lower() == 'true':
             self.generate_diagram = True

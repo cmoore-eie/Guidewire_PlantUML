@@ -5,6 +5,22 @@ import Utilities
 from lxml import etree
 
 
+def extract_tag_type(tag):
+    if '}' in tag:
+        return tag.split("}")[1]
+    else:
+        return tag
+
+
+def extract_entity_name(root_type, attrib) -> str:
+    if root_type == 'delegate':
+        return attrib['name']
+    elif root_type == 'extension':
+        return attrib['entityName']
+    else:
+        return attrib['entity']
+
+
 class GuidewireStructure:
 
     def build(self):
@@ -27,9 +43,9 @@ class GuidewireStructure:
             path = self.entity_source_path
 
         print(path)
-            
+
         for x in os.listdir(path):
-            parser = etree.XMLParser(remove_comments=True)
+            parser = etree.XMLParser(resolve_entities=False, no_network=True, remove_comments=True)
             tree = etree.parse(path + '/' + x, parser)
             root = tree.getroot()
             if '}' in root.tag:
@@ -44,7 +60,7 @@ class GuidewireStructure:
                 self.entity_builder(metadata, root)
             if root_type == 'delegate':
                 self.entity_builder(metadata, root)
-            self.item_count = self.item_count + 1
+            self.item_count += 1
         return self
 
     def process_typelist(self, metadata: bool):
@@ -59,20 +75,12 @@ class GuidewireStructure:
             tree = etree.parse(path + '/' + x)
             root = tree.getroot()
             self.typelist_builder(metadata, root)
-            self.item_count = self.item_count + 1
+            self.item_count += 1
         return self
 
     def entity_builder(self, metadata: bool, root):
-        if '}' in root.tag:
-            root_type = root.tag.split("}")[1]
-        else:
-            root_type = root.tag
-        if root_type == 'delegate':
-            entity_name: str = root.attrib['name']
-        elif root_type == 'extension':
-            entity_name: str = root.attrib['entityName']
-        else:
-            entity_name: str = root.attrib['entity']
+        root_type = extract_tag_type(root.tag)
+        entity_name = extract_entity_name(root_type, root.attrib)
         structure = Utilities.find_plant_structure(self.plant_structures, entity_name)
         if root_type == 'extension':
             if structure.stereotype == 'Base':
@@ -80,9 +88,8 @@ class GuidewireStructure:
             if structure.stereotype == 'Entity':
                 structure.stereotype = 'Entity Extended'
         if 'type' in root.attrib.keys():
-            if root.attrib['type'] == 'effdated':
-                if not metadata:
-                    structure.stereotype = 'Effdated'
+            if root.attrib['type'] == 'effdated' and not metadata:
+                structure.stereotype = 'Effdated'
         if structure.metadata == '':
             if metadata:
                 structure.metadata = 'true'
@@ -103,40 +110,38 @@ class GuidewireStructure:
             structure.stereotype = "Delegate"
         for component in root.iter():
             try:
-                if '}' in component.tag:
-                    tag = component.tag.split("}")[1]
-                else:
-                    tag = component.tag
-                if tag == 'column':
-                    col_name = component.get("name")
-                    col_type = component.get("type")
-                    structure.add_column(col_name, col_type)
-                if tag == 'monetaryamount':
-                    col_name = component.get("name")
-                    col_type = "monetaryamount"
-                    structure.add_column(col_name, col_type)
-                if tag == 'implementsEntity':
-                    implements_entity_name = component.get("name")
-                    structure.add_implements_entity(implements_entity_name)
-                if tag == 'array':
-                    array_entity = component.get("arrayentity")
-                    array_name = component.get("name")
-                    Utilities.remove_foreignkey_in_array(self.plant_structures, array_entity, entity_name)
-                    structure.add_array(array_name, array_entity)
-                if tag == 'typekey':
-                    typekey_entity = component.get("typelist")
-                    typekey_name = component.get("name")
-                    structure.add_type_key(typekey_entity, typekey_name)
-                if tag == 'foreignkey':
-                    foreignkey_entity = component.get("fkentity")
-                    foreignkey_name = component.get("name")
-                    if not (Utilities.foreignkey_in_array(self.plant_structures, foreignkey_entity, entity_name)):
-                        structure.add_foreign_key(foreignkey_name, foreignkey_entity)
-                if tag == 'edgeForeignKey':
-                    foreignkey_entity = component.get("fkentity")
-                    foreignkey_name = component.get("name")
-                    if not (Utilities.foreignkey_in_array(self.plant_structures, foreignkey_entity, entity_name)):
-                        structure.add_foreign_key(foreignkey_name, foreignkey_entity)
+                tag = extract_tag_type(component.tag)
+                match str(tag):
+                    case 'column':
+                        col_name = component.get("name")
+                        col_type = component.get("type")
+                        structure.add_column(col_name, col_type)
+                    case 'monetaryamount':
+                        col_name = component.get("name")
+                        col_type = "monetaryamount"
+                        structure.add_column(col_name, col_type)
+                    case 'implementsEntity':
+                        implements_entity_name = component.get("name")
+                        structure.add_implements_entity(implements_entity_name)
+                    case 'array':
+                        array_entity = component.get("arrayentity")
+                        array_name = component.get("name")
+                        Utilities.remove_foreignkey_in_array(self.plant_structures, array_entity, entity_name)
+                        structure.add_array(array_name, array_entity)
+                    case 'typekey':
+                        typekey_entity = component.get("typelist")
+                        typekey_name = component.get("name")
+                        structure.add_type_key(typekey_entity, typekey_name)
+                    case 'foreignkey':
+                        foreignkey_entity = component.get("fkentity")
+                        foreignkey_name = component.get("name")
+                        if not (Utilities.foreignkey_in_array(self.plant_structures, foreignkey_entity, entity_name)):
+                            structure.add_foreign_key(foreignkey_name, foreignkey_entity)
+                    case 'edgeForeignKey':
+                        foreignkey_entity = component.get("fkentity")
+                        foreignkey_name = component.get("name")
+                        if not (Utilities.foreignkey_in_array(self.plant_structures, foreignkey_entity, entity_name)):
+                            structure.add_foreign_key(foreignkey_name, foreignkey_entity)
             except AttributeError:
                 pass
         return self
@@ -161,7 +166,7 @@ class GuidewireStructure:
                         code = component.get('code')
                         name = component.get('name')
                         structure.add_type_code(code, name)
-                except:
+                except (AttributeError, IndexError):
                     pass
 
     def __init__(self, in_config_json):

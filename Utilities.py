@@ -8,7 +8,7 @@ def find_plant_structure(plant_structures: list[PlantContent], in_name, enum: bo
         if structure.name == in_name:
             if enum and structure.type == 'typelist':
                 return structure
-            if not enum and not (structure.type == 'typelist'):
+            if not enum and structure.type != 'typelist':
                 return structure
     structure = PlantContent()
     structure.name = in_name
@@ -43,6 +43,7 @@ def remove_foreignkey_in_array(plant_structures: list[PlantContent], array_entit
 
 
 def build_template(template_name, namespace) -> str:
+    template_str = ''
     if template_name == 'class':
         template_str = PUMLTemplate.get_class_template()
     elif template_name == 'delegate':

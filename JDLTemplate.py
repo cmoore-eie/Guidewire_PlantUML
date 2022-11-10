@@ -49,6 +49,7 @@ def get_implements_template() -> str:
 $Name ..> $ImplementsName """
     return template
 
+
 def get_subtype_template() -> str:
     template = """
 $structure.name --|> $structure.subtype """

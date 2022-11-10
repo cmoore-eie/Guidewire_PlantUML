@@ -37,24 +37,24 @@ class BuildJDLCode:
 
     def add_custom_additions(self):
         """
-        When looking for custom entities the typelists and delegates may be missed as they dont fit with the
-        criteria. In these instances when searching for custom entities and typelists or delegates are to
+        When looking for custom entities the type lists and delegates may be missed as they don't fit with the
+        criteria. In these instances when searching for custom entities and type lists or delegates are to
         be shown, the typelist or delegate names are extracted and added to the custom custom_additions.
         """
         if self.typelist_hidden is True and self.delegate_hidden is True:
             return self
-        if not (self.config_json['include_custom'].lower() == 'true'):
+        if self.config_json['include_custom'].lower() != 'true':
             return self
         for structure in self.plant_structures:
             if structure.type == 'entity' or structure.type == 'subtype':
                 if self.__process_custom(structure.name) is True:
                     if self.typelist_hidden is False:
                         for key, value in structure.type_keys.items():
-                            if not (key in self.custom_additions):
+                            if key not in self.custom_additions:
                                 self.custom_additions.append(key)
                     if not self.delegate_hidden:
                         for key, value in structure.implements_entities.items():
-                            if not (key in self.custom_additions):
+                            if key not in self.custom_additions:
                                 self.custom_additions.append(key)
         return self
 
@@ -63,9 +63,9 @@ class BuildJDLCode:
         When core association is true and core entities are being processed this function will add the
         additional entities to the list of the core entities to allow then to be processed
         """
-        if not (self.config_json['core_only'].lower() == 'true'):
+        if self.config_json['core_only'].lower() != 'true':
             return self
-        if not (self.config_json['core_associations'].lower() == 'true'):
+        if self.config_json['core_associations'].lower() != 'true':
             return self
         for core_name in self.core_entities.copy():
             structure: PlantContent
@@ -108,7 +108,7 @@ class BuildJDLCode:
             if self.typelist_hidden is False:
                 self.current_file.write("!include BaseTypelist.puml\n\n")
             if not metadata:
-                if not self.config_json['plantuml_theme'] == '':
+                if self.config_json['plantuml_theme'] != '':
                     plant_theme = '!theme ' + self.config_json['plantuml_theme']
                     self.current_file.write(f'{plant_theme} \n')
                 self.current_file.write("!include BaseEntity.puml\n")
@@ -126,7 +126,7 @@ class BuildJDLCode:
                 process = False
                 if metadata and structure.metadata == 'true':
                     process = True
-                if not metadata and not (structure.metadata == 'true'):
+                if not metadata and structure.metadata != 'true':
                     process = True
                 if process:
                     process = self.__process_item(structure.name)
@@ -179,7 +179,7 @@ class BuildJDLCode:
                 process = False
                 if metadata and structure.metadata == 'true':
                     process = True
-                if not metadata and not (structure.metadata == 'true'):
+                if not metadata and structure.metadata != 'true':
                     process = True
                 if process:
                     process = self.__process_item(structure.name)
@@ -226,7 +226,7 @@ class BuildJDLCode:
                 process = False
                 if metadata and structure.metadata == 'true':
                     process = True
-                if not metadata and not (structure.metadata == 'true'):
+                if not metadata and structure.metadata != 'true':
                     process = True
                 if process:
                     process = self.__process_item(structure.name)
@@ -273,7 +273,7 @@ class BuildJDLCode:
         write_file = self.target_path + '/' + self.config_json['one_file_name'] + '.puml'
         self.current_file = open(write_file, 'w')
         self.current_file.write('@startuml ' + self.config_json['one_file_name'] + '\n\n')
-        if not self.config_json['plantuml_theme'] == '':
+        if self.config_json['plantuml_theme'] != '':
             plant_theme = '!theme ' + self.config_json['plantuml_theme']
             self.current_file.write(f'{plant_theme} \n')
         if self.config_json['remove_unlinked'].lower() == 'true':
