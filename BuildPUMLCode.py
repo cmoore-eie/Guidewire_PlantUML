@@ -67,7 +67,7 @@ class BuildPUMLCode:
         if self.config_json['core_associations'].lower() != 'true':
             return self
         for core_name in self.core_entities.copy():
-            structure: PlantContent = None
+            structure: PlantContent = PlantContent()
             for check_structure in self.plant_structures:
                 if check_structure.name == core_name:
                     structure = check_structure
@@ -85,35 +85,14 @@ class BuildPUMLCode:
         ==========
         metadata - set to True if this is sourced from metadata else False
         """
-        entity_file_name = self.target_path
         if metadata:
-            entity_file_name += "/BaseEntity.puml"
-            uml_name = 'BaseEntity'
             class_colour = self.config_json['meta_entity_colour']
             stereotype = "Base"
             print("entities - Metadata")
         else:
-            entity_file_name += "/ExtensionEntity.puml"
-            uml_name = 'ExtensionEntity'
             class_colour = self.config_json['entity_colour']
             stereotype = "Entity"
             print("entities - Extensions")
-        if self.one_file is not True:
-            self.current_file = open(entity_file_name, 'w')
-            self.current_file.write(f"@startuml {uml_name}\n\n")
-            self.current_file.write("!include BaseDelegate.puml\n")
-            if self.typelist_hidden is False:
-                self.current_file.write("!include BaseTypelist.puml\n\n")
-            if not metadata:
-                if self.config_json['plantuml_theme'] != '':
-                    plant_theme = '!theme ' + self.config_json['plantuml_theme']
-                    self.current_file.write(f'{plant_theme} \n')
-                self.current_file.write("!include BaseEntity.puml\n")
-                if self.typelist_hidden is False:
-                    self.current_file.write("!include ExtensionTypelist.puml\n")
-                self.current_file.write("!include ExtensionDelegate.puml\n\n")
-            if self.config_json['remove_unlinked'].lower() == 'true':
-                self.current_file.write("remove @unlinked\n\n")
         if self.config_json['plantuml_theme'] == '':
             self.current_file.write('skinparam class {\n')
             self.current_file.write(f'\tBackgroundColor<<{stereotype}>> {class_colour}\n')
@@ -135,16 +114,20 @@ class BuildPUMLCode:
                     self.__write_arrays(structure)
                     self.__write_typekeys(structure)
                     self.__write_foreign_keys(structure)
-                    if structure.type == 'subtype':
-                        namespace = {'config_json': self.config_json, 'structure': structure}
-                        template_str = Utilities.build_template('subtype', namespace)
-                        self.current_file.write(template_str)
-                        # self.current_file.write(f'{structure.name} --|> {structure.subtype}\n')
+                    self.subtype_builder(structure)
                     self.current_file.write("\n")
-        if self.one_file is not True:
-            self.current_file.write("@enduml\n")
-            self.current_file.close()
         return self
+
+    def subtype_builder(self, structure):
+        if structure.type == 'subtype':
+            if self.__process_item(structure.subtype) is False:
+                subtype_structure = Utilities.find_plant_structure(self.plant_structures, structure.subtype, False)
+                namespace = {'config_json': self.config_json, 'structure': subtype_structure}
+                template_str = Utilities.build_template('class', namespace)
+                self.current_file.write(template_str)
+            namespace = {'config_json': self.config_json, 'structure': structure}
+            template_str = Utilities.build_template('subtype', namespace)
+            self.current_file.write(template_str)
 
     def delegate_builder(self, metadata: bool):
         """ 
@@ -155,22 +138,9 @@ class BuildPUMLCode:
         metadata - set to True if this is sourced from metadata else False
         """
         if metadata:
-            delegate_file_name = self.target_path + "/BaseDelegate.puml"
-            uml_name = 'BaseDelegate'
-            class_colour = self.config_json['delegate_colour']
             print("delegates - Metadata")
         else:
-            delegate_file_name = self.target_path + "/ExtensionDelegate.puml"
-            uml_name = 'ExtensionDelegate'
-            class_colour = self.config_json['delegate_colour']
             print("delegates - Extensions")
-        if self.one_file is not True:
-            self.current_file = open(delegate_file_name, 'w')
-            self.current_file.write(f"@startuml {uml_name}\n")
-        if self.config_json['plantuml_theme'] == '':
-            self.current_file.write('skinparam class {\n')
-            self.current_file.write(f'\tBackgroundColor<<Delegate>> {class_colour}\n')
-            self.current_file.write('}\n\n')
         for structure in self.plant_structures:
             if structure.type == 'delegate':
                 process = False
@@ -178,9 +148,7 @@ class BuildPUMLCode:
                     process = True
                 if not metadata and structure.metadata != 'true':
                     process = True
-                if process:
-                    process = self.__process_item(structure.name)
-                if process:
+                if process and self.__process_item(structure.name):
                     namespace = {'config_json': self.config_json, 'structure': structure}
                     template_str = Utilities.build_template('delegate', namespace)
                     self.current_file.write(template_str)
@@ -189,9 +157,6 @@ class BuildPUMLCode:
                     self.__write_typekeys(structure)
                     self.__write_foreign_keys(structure)
                     self.current_file.write("\n")
-        if self.one_file is not True:
-            self.current_file.write("@enduml\n")
-            self.current_file.close()
         return self
 
     def typelist_builder(self, metadata: bool):
@@ -202,18 +167,10 @@ class BuildPUMLCode:
         ==========
         metadata - set to True if this is sourced from metadata else False
         """
-        target_file_name: str = self.target_path
         if metadata:
-            target_file_name += "/BaseTypelist.puml"
-            uml_name = 'BaseTypelists'
             print("typelists - Metadata")
         else:
-            target_file_name += "/ExtensionTypelist.puml"
-            uml_name = 'ExtensionTypelist'
             print("typelists - Extensions")
-        if self.one_file is not True:
-            self.current_file = open(target_file_name, 'w')
-            self.current_file.write(f"@startuml {uml_name}\n\n")
         if self.config_json['plantuml_theme'] == '':
             self.current_file.write('skinparam enum {\n')
             self.current_file.write(f'\tBackgroundColor<<typelist>> {self.config_json["typelist_colour"]}\n')
@@ -227,15 +184,10 @@ class BuildPUMLCode:
                     process = True
                 if not metadata and structure.metadata != 'true':
                     process = True
-                if process:
-                    process = self.__process_item(structure.name)
-                if process:
+                if process and self.__process_item(structure.name):
                     namespace = {'config_json': self.config_json, 'structure': structure}
                     template_str = Utilities.build_template('typelist', namespace)
                     self.current_file.write(template_str)
-        if self.one_file is not True:
-            self.current_file.write("@enduml\n")
-            self.current_file.close()
         return self
 
     def is_also_entity(self, structure: PlantContent) -> bool:

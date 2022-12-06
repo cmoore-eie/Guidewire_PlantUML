@@ -17,8 +17,24 @@ def extract_entity_name(root_type, attrib) -> str:
         return attrib['name']
     elif root_type == 'extension':
         return attrib['entityName']
+    elif root_type == 'internalExtension':
+        return attrib['entityName']
     else:
         return attrib['entity']
+
+
+def extract_table_name(root_type, attrib, metadata: bool) -> str:
+    table_name = ''
+    if root_type == 'typelist':
+        table_name = attrib['name'].lower()
+        table_name = 'pctl_' + table_name
+        return table_name
+    if root_type is not None:
+        if 'table' in attrib.keys():
+            table_name = attrib['table']
+            if metadata is True:
+                table_name = 'pc_' + table_name
+    return table_name
 
 
 class GuidewireStructure:
@@ -81,7 +97,10 @@ class GuidewireStructure:
     def entity_builder(self, metadata: bool, root):
         root_type = extract_tag_type(root.tag)
         entity_name = extract_entity_name(root_type, root.attrib)
+        table_name = extract_table_name(root_type, root.attrib, metadata)
         structure = Utilities.find_plant_structure(self.plant_structures, entity_name)
+        if structure.table == '':
+            structure.table = table_name
         if root_type == 'extension':
             if structure.stereotype == 'Base':
                 structure.stereotype = 'Base Extended'
@@ -148,7 +167,10 @@ class GuidewireStructure:
 
     def typelist_builder(self, metadata: bool, root):
         typelist_name = root.attrib['name']
+        table_name = extract_table_name('typelist', root.attrib, metadata)
         structure = Utilities.find_plant_structure(self.plant_structures, typelist_name, True)
+        if structure.table == '':
+            structure.table = table_name
         if structure.metadata == '':
             if metadata:
                 structure.metadata = 'true'

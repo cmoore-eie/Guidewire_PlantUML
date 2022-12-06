@@ -30,6 +30,7 @@ class PlantContent:
         self.stereotype: str = ''
         self.subtype: str = ''
         self.metadata: str = ''
+        self.table: str = ''
         self.columns: dict[str, str] = dict()
         self.arrays: dict[str, str] = dict()
         self.implements_entities: dict[str, str] = dict()

@@ -1,10 +1,10 @@
 import getopt
 import json
+import os
 import sys
 from json import JSONDecodeError
-from Structures import *
 from BuildPUMLCode import BuildPUMLCode
-from BuildJDLCode import BuildJDLCode
+from Structures import GuidewireStructure
 
 version_number = '3.0.1'
 help_str = '''
@@ -61,14 +61,10 @@ def main(argv):
             decoded_json = json.load(file)
             config_json = check_and_fix_json(decoded_json)
             config_json['one_file_name'] = os.path.basename(file.name).split('.')[0]
-            build_structure_class = globals()[config_json['structure']]
-            build_structure = build_structure_class(config_json)
+            build_structure = GuidewireStructure(config_json)
             build_structure.build()
             if config_json['output_type'].lower() == 'puml':
                 build_types = BuildPUMLCode(config_json, build_structure.plant_structures)
-                build_types.type_builder()
-            if config_json['output_type'].lower() == 'jdl':
-                build_types = BuildJDLCode(config_json, build_structure.plant_structures)
                 build_types.type_builder()
         except JSONDecodeError:
             print(f'ERROR - The json file {config_file} is invalid and needs correcting before use')
@@ -152,8 +148,8 @@ def check_and_fix_json_puml(config_json):
         json_defaults[len(json_defaults) + 1] = f'Defaulting one_file to true'
 
     if 'plantuml_theme' not in config_json:
-        config_json['plantuml_theme'] = ''
-        json_defaults[len(json_defaults) + 1] = f'Defaulting plantuml_theme to empty string'
+        config_json['plantuml_theme'] = 'guidewire from https://cmscommunity.s3.eu-central-1.amazonaws.com/plant_themes'
+        json_defaults[len(json_defaults) + 1] = f'Defaulting plantuml_theme to guidewire theme'
     else:
         config_json['delegate_colour'] = ''
         config_json['entity_colour'] = ''
