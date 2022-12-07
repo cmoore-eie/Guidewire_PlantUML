@@ -29,11 +29,12 @@ def extract_table_name(root_type, attrib, metadata: bool) -> str:
         table_name = attrib['name'].lower()
         table_name = 'pctl_' + table_name
         return table_name
-    if root_type is not None:
-        if 'table' in attrib.keys():
-            table_name = attrib['table']
-            if metadata is True:
-                table_name = 'pc_' + table_name
+    if root_type is not None and 'table' in attrib.keys():
+        table_name = attrib['table']
+        if metadata is True:
+            table_name = 'pc_' + table_name
+        else:
+            table_name = 'pcx_' + table_name
     return table_name
 
 
@@ -154,7 +155,8 @@ class GuidewireStructure:
                     case 'foreignkey':
                         foreignkey_entity = component.get("fkentity")
                         foreignkey_name = component.get("name")
-                        if not (Utilities.foreignkey_in_array(self.plant_structures, foreignkey_entity, entity_name)):
+                        fk_array = Utilities.foreignkey_in_array(self.plant_structures, foreignkey_entity, entity_name)
+                        if fk_array is False:
                             structure.add_foreign_key(foreignkey_name, foreignkey_entity)
                     case 'edgeForeignKey':
                         foreignkey_entity = component.get("fkentity")

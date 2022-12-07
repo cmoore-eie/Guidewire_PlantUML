@@ -12,15 +12,24 @@ def get_class_template() -> str:
 #set TableName = $structure.table
 ##
 class ${ClassName} <<${Stereotype}>> {
-  #if $TableName != '':
-    table : $TableName
-    --
-  #end if
   #if $class_contents == 'true':
     #for key, value in $structure.columns.items():
   $key : $value
     #end for
   #end if
+} 
+"""
+    return template
+
+
+def get_class_shell_template() -> str:
+    template = """
+#set class_contents = $config_json['entity_contents'].lower()
+#set ClassName = $structure.name
+#set Stereotype = $structure.stereotype
+#set TableName = $structure.table
+##
+class ${ClassName} <<${Stereotype}>> {
 } 
 """
     return template
@@ -75,10 +84,6 @@ def get_typelist_template() -> str:
 #set TableName = $structure.table
 ##
 enum ${TypelistName} <<${Stereotype}>> {
-  #if $TableName != '':
-    table : $TableName
-    --
-  #end if
   #if $typlist_contents == 'true':
     #for key, value in $structure.type_codes.items():
   $key

@@ -46,6 +46,8 @@ def build_template(template_name, namespace) -> str:
     template_str = ''
     if template_name == 'class':
         template_str = PUMLTemplate.get_class_template()
+    elif template_name == 'class_shell':
+        template_str = PUMLTemplate.get_class_shell_template()
     elif template_name == 'delegate':
         template_str = PUMLTemplate.get_delegate_template()
     elif template_name == 'typelist':

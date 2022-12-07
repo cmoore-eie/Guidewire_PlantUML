@@ -44,17 +44,17 @@ class BuildPUMLCode:
             return self
         if not self.include_custom:
             return self
-        for structure in self.plant_structures:
-            if structure.type == 'entity' or structure.type == 'subtype':
-                if self.__process_custom(structure.name) is True:
-                    if self.typelist_hidden is False:
-                        for key, value in structure.type_keys.items():
-                            if key not in self.custom_additions:
-                                self.custom_additions.append(key)
-                    if not self.delegate_hidden:
-                        for key, value in structure.implements_entities.items():
-                            if key not in self.custom_additions:
-                                self.custom_additions.append(key)
+        for structure in {uml_structure for uml_structure in self.plant_structures
+                          if uml_structure.type == 'entity' or uml_structure.type == 'subtype'}:
+            if self.__process_custom(structure.name) is True:
+                if self.typelist_hidden is False:
+                    for key, value in structure.type_keys.items():
+                        if key not in self.custom_additions:
+                            self.custom_additions.append(key)
+                if not self.delegate_hidden:
+                    for key, value in structure.implements_entities.items():
+                        if key not in self.custom_additions:
+                            self.custom_additions.append(key)
         return self
 
     def extend_core(self):
@@ -108,7 +108,10 @@ class BuildPUMLCode:
                     process = self.__process_item(structure.name)
                 if process:
                     namespace = {'config_json': self.config_json, 'structure': structure}
-                    template_str = Utilities.build_template('class', namespace)
+                    if structure.name in self.shell_entities:
+                        template_str = Utilities.build_template('class_shell', namespace)
+                    else:
+                        template_str = Utilities.build_template('class', namespace)
                     self.current_file.write(template_str)
                     self.__write_implements(structure)
                     self.__write_arrays(structure)
@@ -123,7 +126,10 @@ class BuildPUMLCode:
             if self.__process_item(structure.subtype) is False:
                 subtype_structure = Utilities.find_plant_structure(self.plant_structures, structure.subtype, False)
                 namespace = {'config_json': self.config_json, 'structure': subtype_structure}
-                template_str = Utilities.build_template('class', namespace)
+                if subtype_structure.name in self.shell_entities:
+                    template_str = Utilities.build_template('class_shell', namespace)
+                else:
+                    template_str = Utilities.build_template('class', namespace)
                 self.current_file.write(template_str)
             namespace = {'config_json': self.config_json, 'structure': structure}
             template_str = Utilities.build_template('subtype', namespace)
@@ -141,22 +147,22 @@ class BuildPUMLCode:
             print("delegates - Metadata")
         else:
             print("delegates - Extensions")
-        for structure in self.plant_structures:
-            if structure.type == 'delegate':
-                process = False
-                if metadata and structure.metadata == 'true':
-                    process = True
-                if not metadata and structure.metadata != 'true':
-                    process = True
-                if process and self.__process_item(structure.name):
-                    namespace = {'config_json': self.config_json, 'structure': structure}
-                    template_str = Utilities.build_template('delegate', namespace)
-                    self.current_file.write(template_str)
-                    self.__write_implements(structure)
-                    self.__write_arrays(structure)
-                    self.__write_typekeys(structure)
-                    self.__write_foreign_keys(structure)
-                    self.current_file.write("\n")
+        for structure in {delegate_structure for delegate_structure in self.plant_structures
+                          if delegate_structure.type == 'delegate'}:
+            process = False
+            if metadata and structure.metadata == 'true':
+                process = True
+            if not metadata and structure.metadata != 'true':
+                process = True
+            if process and self.__process_item(structure.name):
+                namespace = {'config_json': self.config_json, 'structure': structure}
+                template_str = Utilities.build_template('delegate', namespace)
+                self.current_file.write(template_str)
+                self.__write_implements(structure)
+                self.__write_arrays(structure)
+                self.__write_typekeys(structure)
+                self.__write_foreign_keys(structure)
+                self.current_file.write("\n")
         return self
 
     def typelist_builder(self, metadata: bool):
@@ -311,6 +317,19 @@ class BuildPUMLCode:
                     return True
         return False
 
+    def setup_entities(self):
+        if 'core_entities' in self.config_json:
+            for entity in self.config_json["core_entities"]:
+                self.core_entities.append(entity["core_entity"])
+
+        if 'exclude_entities' in self.config_json:
+            for entity in self.config_json["exclude_entities"]:
+                self.exclude_entities.append(entity["exclude_entity"])
+
+        if 'shell_entities' in self.config_json:
+            for entity in self.config_json["shell_entities"]:
+                self.shell_entities.append(entity["shell_entity"])
+
     def __init__(self, in_config_json, in_plant_structures: list[PlantContent]):
         self.config_json = in_config_json
         self.plant_structures = in_plant_structures
@@ -319,6 +338,7 @@ class BuildPUMLCode:
         self.core_entities: list[str] = list()
         self.exclude_entities: list[str] = list()
         self.custom_additions: list[str] = list()
+        self.shell_entities: list[str] = list()
         self.one_file = False
         self.current_file = None
 
@@ -345,10 +365,4 @@ class BuildPUMLCode:
         if self.config_json['one_file'].lower() == 'true':
             self.one_file = True
 
-        if 'core_entities' in self.config_json:
-            for entity in self.config_json["core_entities"]:
-                self.core_entities.append(entity["core_entity"])
-
-        if 'exclude_entities' in self.config_json:
-            for entity in self.config_json["exclude_entities"]:
-                self.exclude_entities.append(entity["exclude_entity"])
+        self.setup_entities()
