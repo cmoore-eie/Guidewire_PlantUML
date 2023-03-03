@@ -242,8 +242,8 @@ class BuildPUMLCode:
         if self.config_json['plantuml_theme'] != '':
             plant_theme = '!theme ' + self.config_json['plantuml_theme']
             self.current_file.write(f'{plant_theme} \n')
-        if self.config_json['remove_unlinked'].lower() == 'true':
-            self.current_file.write("remove @unlinked\n\n")
+        # if self.config_json['remove_unlinked'].lower() == 'true':
+        #     self.current_file.write("remove @unlinked\n\n")
 
     def __maybe_create_diagram(self):
         if not self.generate_diagram:
