@@ -220,6 +220,8 @@ class BuildPUMLCode:
                 self.current_file.write(template_str)
 
     def __write_typekeys(self, structure: PlantContent):
+        if self.typelist_hidden is True:
+            return
         for key, value in structure.type_keys.items():
             if self.__process_item(key):
                 namespace = {'Name': structure.name, 'TypekeyName': value, 'TypekeyType': key}
